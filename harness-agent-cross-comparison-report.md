@@ -323,6 +323,9 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | DeerFlow 2.0 | 3×0.30 | 4×0.15 | 3×0.10 | 3×0.20 | 2×0.20 | 3×0.05 | **2.95** |
 | Deep Agents | 1×0.30 | 2×0.15 | 4×0.10 | 2×0.20 | 3×0.20 | 3×0.05 | **2.35** |
 | Cursor SDK | 0×0.30 | 2×0.15 | 2×0.10 | 1×0.20 | 1×0.20 | 2×0.05 | **1.00** |
+| Claude Code | 2×0.30 | 4×0.15 | 4×0.10 | 4×0.20 | 4×0.20 | 4×0.05 | **3.40** |
+| Codex | 1×0.30 | 3×0.15 | 2×0.10 | 3×0.20 | 2×0.20 | 2×0.05 | **2.05** |
+| OpenCode | 2×0.30 | 3×0.15 | 3×0.10 | 2×0.20 | 2×0.20 | 4×0.05 | **2.35** |
 
 **S2: 企业 Agent 平台**
 
@@ -333,6 +336,9 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | DeerFlow 2.0 | 3×0.10 | 4×0.20 | 3×0.25 | 3×0.30 | 2×0.10 | 3×0.05 | **3.10** |
 | Deep Agents | 1×0.10 | 2×0.20 | 4×0.25 | 2×0.30 | 3×0.10 | 3×0.05 | **2.55** |
 | Cursor SDK | 0×0.10 | 2×0.20 | 2×0.25 | 1×0.30 | 1×0.10 | 2×0.05 | **1.35** |
+| Claude Code | 2×0.10 | 4×0.20 | 4×0.25 | 4×0.30 | 4×0.10 | 4×0.05 | **3.80** |
+| Codex | 1×0.10 | 3×0.20 | 2×0.25 | 3×0.30 | 2×0.10 | 2×0.05 | **2.40** |
+| OpenCode | 2×0.10 | 3×0.20 | 3×0.25 | 2×0.30 | 2×0.10 | 4×0.05 | **2.55** |
 
 **S3: 开发者 Agent SDK**
 
@@ -343,17 +349,23 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | DeerFlow 2.0 | — | 4×0.30 | 3×0.30 | 3×0.10 | 2×0.05 | 3×0.25 | **3.25** |
 | Deep Agents | — | 2×0.30 | 4×0.30 | 2×0.10 | 3×0.05 | 3×0.25 | **2.80** |
 | Cursor SDK | — | 2×0.30 | 2×0.30 | 1×0.10 | 1×0.05 | 2×0.25 | **1.80** |
+| Claude Code | — | 4×0.30 | 4×0.30 | 4×0.10 | 4×0.05 | 4×0.25 | **4.00** |
+| Codex | — | 3×0.30 | 2×0.30 | 3×0.10 | 2×0.05 | 2×0.25 | **2.40** |
+| OpenCode | — | 3×0.30 | 3×0.30 | 2×0.10 | 2×0.05 | 4×0.25 | **3.10** |
 
 ### B.3.4 场景排名汇总
 
 ```
-S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SDK
-─────────────────      ──────────────────       ──────────────────
-1. Hermes Agent 3.60   1. Hermes Agent 3.40     1. Hermes Agent 3.80
-2. OpenClaw     3.05   2. DeerFlow 2.0  3.10     2. OpenClaw      3.40
-3. DeerFlow 2.0 2.95   3. OpenClaw      3.00     3. DeerFlow 2.0  3.25
-4. Deep Agents  2.35   4. Deep Agents   2.55     4. Deep Agents   2.80
-5. Cursor SDK   1.00   5. Cursor SDK    1.35     5. Cursor SDK    1.80
+S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agent SDK
+─────────────────        ──────────────────         ──────────────────
+1. Hermes Agent 3.60     1. Claude Code   3.80       1. Claude Code   4.00
+2. Claude Code  3.40     2. Hermes Agent  3.40       2. Hermes Agent  3.80
+3. OpenClaw     3.05     3. DeerFlow 2.0  3.10       3. OpenClaw      3.40
+4. DeerFlow 2.0 2.95     4. OpenClaw      3.00       4. DeerFlow 2.0  3.25
+5. Deep Agents  2.35     5. Deep Agents   2.55       5. OpenCode      3.10
+5. OpenCode     2.35     5. OpenCode      2.55       6. Deep Agents   2.80
+7. Codex        2.05     7. Codex         2.40       7. Codex         2.40
+8. Cursor SDK   1.00     8. Cursor SDK    1.35       8. Cursor SDK    1.80
 ```
 
 ---
@@ -364,11 +376,14 @@ S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SD
 
 | 排名 | 产品 | 平均分 | 优势场景 | 核心风险 |
 |:----:|------|:------:|---------|---------|
+| **1** | **Claude Code** | **3.67** | 开发SDK(S3#1) / 企业平台(S2#1) | 闭源 + 单 vendor (仅 Anthropic API) |
 | **1** | **Hermes Agent** | **3.67** | 全场景领先 | 多租户缺失（沙箱 task_id 全局共享） |
-| 2 | OpenClaw | 3.17 | 个人助手(S1#2) / 开发SDK(S3#2) | 无多租户，D5记忆系统偏弱 |
-| 3 | DeerFlow 2.0 | 3.00 | 企业平台(S2#2) / 开发 SDK | IM 渠道数有限 (6 个) |
-| 4 | Deep Agents | 2.50 | 开发 SDK (编排最强) | 无独立运行时，不适合个人/企业场景 |
-| 5 | Cursor SDK | 1.33 | Cursor IDE 生态内 | 闭源、不可审计、无通信层 |
+| 3 | OpenClaw | 3.17 | 个人助手(S1#3) / 开发SDK(S3#3) | 无多租户，D5记忆系统偏弱 |
+| 4 | DeerFlow 2.0 | 3.00 | 企业平台(S2#3) / 开发 SDK | IM 渠道数有限 (6 个) |
+| 5 | OpenCode | 2.67 | 开源编码 Agent | 无公开 Benchmark, 多能力推断 |
+| 6 | Deep Agents | 2.50 | 开发 SDK (编排最强) | 无独立运行时，不适合个人/企业场景 |
+| 7 | Codex | 2.17 | 轻量终端编码 Agent | 单 vendor (仅 OpenAI), 无 Multi-Agent |
+| 8 | Cursor SDK | 1.33 | Cursor IDE 生态内 | 闭源、不可审计、无通信层 |
 
 ### B.4.2 针对内部选型「OpenClaw vs Hermes Agent」的结论
 
@@ -442,9 +457,10 @@ S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SD
 
 1. **评分基于静态分析**: 所有数据来自源码、文档和配置文件，非运行时 Benchmark
 2. **无性能对比**: Token 消耗、延迟、吞吐量未测量（需要统一 Benchmark 环境）
-3. **版本时效性**: 报告基于 2026-05-04 的仓库状态，产品快速迭代中
-4. **闭源不透明**: Cursor SDK 的评分存在推断成分，实际能力可能高于或低于评分
+3. **版本时效性**: 报告基于 2026-05-06 的仓库状态，产品快速迭代中
+4. **闭源/分析不透明**: Claude Code (泄露源码分析, 覆盖率 ~40%)、Cursor SDK (闭源)、OpenCode/Codex (推断比例偏高) 的评分存在推断成分
 5. **场景权重主观性**: 三个场景的权重分配基于典型需求推断，实际项目可能有不同侧重
+6. **Coding Agent 产品评分基于较浅分析**: Claude Code/Codex/OpenCode 仅基于静态文档阅读，未做源码级深度验证
 
 ---
 
@@ -453,9 +469,11 @@ S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SD
 | 优先级 | 行动 | 说明 |
 |:------:|------|------|
 | P0 | 运行时 Benchmark | 在统一环境中跑三个场景的端到端测试，验证静态分析结论 |
-| P0 | 深度 PoC | 对 Top 2 产品 (Hermes Agent + DeerFlow 2.0) 进行 2 周 PoC |
+| P0 | 深度 PoC | 对 Top 3 产品 (Claude Code / Hermes Agent / DeerFlow 2.0) 进行 2 周 PoC |
+| P1 | Coding Agent 深挖 | Claude Code/Codex/OpenCode 的源码级验证（当前3份报告推断比例偏高） |
 | P1 | CMA 概念对齐 | 基于选型结果，执行 Phase 3 扩展 — CMA 九大概念对齐 |
 | P1 | 社区健康度评估 | 分析 Issue 关闭率、PR merge 速度、贡献者多样性 |
+| P2 | SWE-bench 跑分 | 对 Top 4 Coding Agent 产品在 SWE-bench 上统一跑分 |
 
 ---
 
@@ -472,6 +490,9 @@ S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SD
 | **Hermes Agent** | `batch_runner.py`(轨迹生成) + `mini_swe_runner.py`(SWE 风格) + `hermes_swe_env`(RL 环境) | 无标准 benchmark 集成（自研 SWE 环境用于 RL 训练） | ✅ multiprocessing Pool + checkpoint 断点续跑 | ❌ 无公开得分 |
 | **DeerFlow 2.0** | Roadmap § Benchmark 体系 🔥🔥🔥🔥🔥 | 无（计划中） | ❌ | ❌ |
 | **OpenClaw** | 无独立 evals 目录 | 无 | CI 含 Docker E2E(live models/channels/sandboxes) 但非标准化评测 | ❌ |
+| **Claude Code** | 内部分析 (泄露源码揭示测试文件) | 无公开 benchmark | ❓ (闭源, 无法确认) | ❌ |
+| **Codex** | 无独立 evals 目录 | 无 | ✅ Rust test suite + CI | ❌ |
+| **OpenCode** | 无独立 evals 目录 | 无 | ✅ packages/ 各自测试 | ❌ |
 | **Cursor SDK** | 闭源不可见 | 未知 | 未知 | ❌ |
 
 ### B.7.2 Deep Agents 评测体系详情（唯一成熟体系）
@@ -494,6 +515,7 @@ S1: 个人 AI 助手        S2: 企业 Agent 平台       S3: 开发者 Agent SD
 
 - **Deep Agents 评测体系最成熟**，可复用其 benchmark 为其他产品建立统一评测基准（FRAMES/Nexus/BFCL v3 均公开可用）
 - **Hermes Agent 的轨迹生成系统**可与 Deep Agents evals 互补——用 Deep 的 benchmark 题目跑 Hermes 的 batch_runner，产出可比轨迹
+- **Claude Code / Codex / OpenCode 均无公开评测体系** — 作为 Coding Agent 定位的产品，缺少 SWE-bench 等标准 benchmark 得分是重大短板
 - **DeerFlow 的 Benchmark 缺失**是 Roadmap 高点，社区 #1669 Issue 明确标注「待启动」
 - **所有产品均无公开的横向对比 benchmark 得分**——这既是差距也是机会
 | P2 | 建立动态评估管道 | 将本报告方法固化为自动化 Script，新产品接入仅需 1 天 |
