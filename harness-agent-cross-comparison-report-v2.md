@@ -8,6 +8,7 @@
 > 方法论: 特征归一化 + 亲和聚类 + 四级成熟度评分
 > v2 变更: 精简结构 (移除 B.3-B.7)，B.2.2 每项支持特征标注实现方法与效果
 > v2.1 变更: 新增 B.2.4 特征举证索引 — 每条特征标注垂直报告行号 (79% 覆盖率), 待收集清单
+> v2.2 变更: 源码级补充 — Codex并行执行✅(tokio::spawn), OpenCode上下文压缩✅(compaction.ts), DeepAgents压缩量化配置
 
 ---
 
@@ -238,10 +239,10 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|---------|----------|-------------|--------------|--------------|------------|-------------|-------|----------|
 | SubAgent 委派 | 复杂任务拆解为独立子 Agent | ✅ — 实现: sessions_spawn + subagent registry。效果: 可 spawn 多个 subagent session | ✅ — 实现: 声明式/预编译/远程 SubGraphAgent 三种形态。效果: 最灵活的 SubAgent 定义方式 | ✅ — 实现: 双线程池 (3+3)。效果: 主线程+副线程池并发 | ✅ — 实现: delegate_task tool。效果: 子 Agent 独立工具集和上下文 | ✅ — 实现: customSubagents 配置。效果: IDE 内自定义子 Agent | ✅ — 实现: AgentTool 6 built-in Agents + SubAgent/Coordinator/Swarm 三套。效果: 已知产品中最丰富的 Multi-Agent 体系 | ✅ — 实现: codex_delegate.rs (846行) SubAgentSource + agent-graph-store 图拓扑。效果: 图状 SubAgent 关系而非树 | ✅ — 实现: agent mode: subagent/primary/all。效果: 三级 Agent 角色 + per-Agent permission |
-| 并行执行 | 互不依赖子任务同时执行 | ✅ — 实现: parallel subagent + grouped results。效果: 总耗时 = max(子任务) | ✅ — 实现: AsyncSubAgent + LangGraph 并行节点。效果: 图式并行 | ✅ — 实现: MAX=3 并发限制。效果: 最多3个并行子任务 | ✅ — 实现: delegate_task max=3。效果: 最多3个并行 | ❓ — 推断: 可能 | ✅ — 实现: Swarm teammates 并行。效果: Swarm 模式全并行 | ❓ — 推断: 串行 | - |
+| 并行执行 | 互不依赖子任务同时执行 | ✅ — 实现: parallel subagent + grouped results。效果: 总耗时 = max(子任务) | ✅ — 实现: AsyncSubAgent + LangGraph 并行节点。效果: 图式并行 | ✅ — 实现: MAX=3 并发限制。效果: 最多3个并行子任务 | ✅ — 实现: delegate_task max=3。效果: 最多3个并行 | ❓ — 推断: 可能 | ✅ — 实现: Swarm teammates 并行。效果: Swarm 模式全并行 | ✅ — 实现: tokio::spawn 并发 event/op 通道 (codex_delegate.rs:130,144)。效果: 多子Agent 可并行, 异步事件转发 | - |
 | Plan/Todo | 自动创建 Todo 列表跟踪进度 | ✅ — 实现: update_plan tool (experimental, opt-in)。效果: 需显式开启 | ✅ — 实现: TodoListMiddleware (MW 栈第 6 层)。效果: 自动 Todo 生成和更新 | ✅ — 实现: TodoListMiddleware (MW 栈第 5 层)。效果: 自动 Todo | - | - | ✅ — 实现: TaskCreate/TaskStop 工具。效果: Agent 自主创建/停止任务 | ❓ — 推断: 可能 | - |
 | Loop 检测 | 防止 Agent 陷入死循环 | ✅ — 实现: tools.loopDetection: detectors(3种) + circuitBreaker + postCompactionGuard。效果: 三级检测+熔断+压缩后二次检查 | ✅ — 实现: PatchToolCalls。效果: 工具调用修复即破坏循环 | ✅ — 实现: LoopDetectionMW。效果: 独立中间件检测 | ✅ — 实现: tool_loop_guardrails。效果: Guardrails 内置检测 | ❓ — 闭源不可见 | ✅ — 推断: compact 压缩机制含循环检测 | ❓ — 未确认 | - |
-| 上下文压缩 | Token 超限时自动压缩 | ✅ — 实现: auto-compaction + midTurnPrecheck + retry + notifier。效果: 自动触发+中途检查+重试+通知 | ✅ — 实现: SummarizationMW (MW 栈第 11 层)。效果: 85% 阈值自动触发 | - | ✅ — 实现: compressor + 自动触发 (50%阈值)。效果: 半触发 | ❓ — 闭源不可见 | ✅ — 实现: compact + hooks 回调。效果: 可编程压缩策略 | ✅ — 实现: compact_remote.rs (354行) + compact_remote_v2.rs。效果: 远程执行压缩，v1+v2 双策略 | - |
+| 上下文压缩 | Token 超限时自动压缩 | ✅ — 实现: auto-compaction + midTurnPrecheck + retry + notifier。效果: 自动触发+中途检查+重试+通知 | ✅ — 实现: SummarizationMW (MW 栈第 11 层)。配置: trigger=('fraction',0.85) keep=('fraction',0.10) model='gpt-4o-mini'。效果: 85%阈值自动触发, 保留10%最近消息, 专用摘要模型 | - | ✅ — 实现: compressor + 自动触发 (50%阈值)。效果: 半触发 | ❓ — 闭源不可见 | ✅ — 实现: compact + hooks 回调。效果: 可编程压缩策略 | ✅ — 实现: compact_remote.rs (354行) + compact_remote_v2.rs。效果: 远程执行压缩，v1+v2 双策略 | ✅ — 实现: session/compaction.ts (652行) — isOverflow检测 + SessionProcessor。效果: Token超限自动压缩, 独立压缩事件总线 |
 | Middleware/Agent 引擎 | 请求处理精细度 | ✅ — 实现: pi-embedded-runner (嵌入自有引擎)。效果: 自有 Agent 引擎，非外部黑盒 | ✅ — 实现: 13 层 Middleware。效果: 管道化处理 | ✅ — 实现: 18 层 Middleware (已知最多)。效果: 最精细的请求管道 | ✅ — 实现: 自有 Agent loop。效果: 非中间件架构 | ❓ — 闭源 | ✅ — 实现: QueryEngine (六层架构统一内核)。效果: 分层查询引擎 | ✅ — 实现: agent-graph-store (图状态机)。效果: 图结构驱动 Agent 生命周期 | ✅ — 实现: Effect-TS v4 fiber 架构。效果: 函数式并发模型 |
 | 工具调用恢复 | 失败后自动 patch/重试/降级 | ✅ — 实现: orphan recovery + compaction retry + tool-result guard。效果: 孤儿恢复+压缩重试+结果守卫 | ✅ — 实现: PatchToolCalls。效果: 自动修复工具调用参数 | ✅ — 实现: LoopDetection hard stop。效果: 循环硬中断即恢复 | ✅ — 实现: Guardrails hard_stop。效果: 工具失败后 Guardrails 干预 | ❓ — 闭源 | ✅ — 推断: StreamingToolExecutor 含重试 | ❓ — 未确认 | - |
 
@@ -341,7 +342,8 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 |------|------|----------|-------------|--------------|--------------|------------|-------------|-------|----------|
 | D3 | SubAgent 委派 | ↗ §2.1 L348 | ↗ §2.3 L119 | ↗ §3.2 L381 | ↗ §2.3 L196 | ↗ §4.1 L100 闭源 | ↗ §2.3 L167 | ↗ §2.1 L89 | ↗ §2.1 L105 |
 | D3 | Loop 检测 | ↗ §2.1 L246 | ↗ §2.1 L144 | ↗ §3.1 L383 | ↗ §2.1 L109 | ⟳ 闭源 | ⟳ 推断 | ⟳ | ⟳ |
-| D3 | 上下文压缩 | ↗ §2.3 L148 | ↗ §2.1 L132 | ⟳ 不支持 | ↗ §2.1 L211 | ⟳ 闭源 | ↗ §2.5 L182 | ↗ §2.4 L65 | ⟳ |
+| D3 | 上下文压缩 | ↗ §2.3 L148 | ↗ §2.1 L132 + 配置: trigger=0.85 | ⟳ 不支持 | ↗ §2.1 L211 | ⟳ 闭源 | ↗ §2.5 L182 | ↗ §2.4 L65 | ↗ session/compaction.ts:652行 |
+| D3 | 并行执行 (新增) | ↗ §2.3 L240 | ↗ §2.3 L119 | ↗ §3.2 L381 | ↗ §2.3 L203 | ⟳ 闭源 | ↗ §2.3 L228 | ↗ codex_delegate.rs:130,144 | ⟳ 不支持 |
 | D4 | Sandbox 隔离 | ↗ §2.1 L217 | ↗ §2.1 L139 | ↗ §3.1 L369 | ↗ §2.1 L186 | ⟳ 闭源 | ↗ §2.2 L178 | ↗ §2.2 L99 | ↗ §2.2 L115 |
 | D4 | 工具白名单 | ↗ §2.1 L219 | ⟳ 仅文件权限 | ↗ §3.1 L371 | ↗ §2.1 L208 | ⟳ 闭源 | ↗ §2.2 L196 | ↗ §2.1 L92 | ↗ §2.3 L130 |
 | D4 | SSRF 防护 | ↗ §2.1 L219 | ⟳ 未支持 | ⟳ 未支持 | ↗ §2.1 L238 | ⟳ 闭源 | ↗ §2.2 L251 | ↗ §2.4 L97 | ↗ §2.3 L130 |
@@ -351,17 +353,17 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | D6 | ACP 支持 | ↗ §2.1 L257 | ↗ §2.1 L163 | ↗ §3.1 L372 | ↗ §2.1 L224 | ⟳ 未支持 | ↗ §2.4 L227 | ↗ §2.1 L89 | ↗ §2.4 L143 |
 | D6 | Provider 数量 | ↗ §2.1 L258 | ↗ §2.1 L162 | ↗ §3.1 L176 | ↗ §2.1 L226 | ⟳ 闭源 | ↗ §1.3 L27 | ↗ §1.1 L32 | ↗ §2.5 L150 |
 
-**统计**: 80 格中 63 格有垂直报告举证 (79%), 17 格待收集。
+**统计**: 88 格中 67 格有垂直报告举证 (76%), 21 格待收集。v2.2 源码补充: Codex 并行执行✅, OpenCode 上下文压缩✅, DeepAgents 压缩量化配置✅。
 
 ### 待收集清单 (需后续特征挖掘)
 
 | 产品 | 待补全特征 | 缺失原因 |
 |------|----------|---------|
 | OpenClaw | D1-流式输出, D1-Voice配置, D3-Plan/Todo配置, D6-Skills配置 | 垂直报告有功能描述但缺配置/量化细节 |
-| Deep Agents | D1全类, D2-并行执行配置, D4-工具白名单机制, D5-自动压缩策略 | 执行环境虚拟化，部分特征不适用 |
+| Deep Agents | D1全类, D2-并行执行配置, D4-工具白名单机制 | 执行环境虚拟化，部分特征不适用 |
 | DeerFlow 2.0 | D3-上下文压缩, D4-SSRF/Vault, D5-SessionSearch | 垂直报告章节覆盖不全 |
 | Hermes Agent | D4-Vault/审计配置, D5-Skills自动管理配置 | 有功能描述但缺配置示例 |
 | Cursor SDK | D1-D5 大部分 | 闭源不可审计，仅编译产物 |
 | Claude Code | D3-Loop检测机制, D5-SessionSearch, D6-ACP配置 | 泄露源码分析，部分子系统未覆盖 |
-| Codex | D1-流式输出, D3-并行执行/Plan, D5-SessionSearch | Rust源码分析偏重核心引擎，UI/交互层待补 |
-| OpenCode | D3-Loop检测, D3-上下文压缩, D5-Memory系统 | 垂直报告已覆盖主要特征，少量边缘特征待补 |
+| Codex | D1-流式输出, D3-Plan/Todo, D5-SessionSearch | Rust源码分析偏重核心引擎，UI/交互层待补 |
+| OpenCode | D3-Loop检测, D5-Memory系统 | 垂直报告已覆盖主要特征，少量边缘特征待补 |
