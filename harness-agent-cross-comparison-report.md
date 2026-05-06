@@ -2,9 +2,9 @@
 
 ## Phase 2: 聚类建模 + Phase 3: 横向映射
 
-> 产出日期: 2026-05-04
-> 分析对象: OpenClaw / Deep Agents / DeerFlow 2.0 / Hermes Agent / Cursor SDK
-> 数据基础: 5 份垂直能力解构报告 (Phase 1 产出)
+> 产出日期: 2026-05-06
+> 分析对象: OpenClaw / Deep Agents / DeerFlow 2.0 / Hermes Agent / Cursor SDK / Claude Code / Codex / OpenCode
+> 数据基础: 8 份垂直能力解构报告 (Phase 1 产出)
 > 方法论: 特征归一化 + 亲和聚类 + 场景加权评分
 
 ---
@@ -19,7 +19,7 @@
 
 | 缺陷 | 传统做法 | 本方案改进 |
 |------|---------|-----------|
-| **先入为主** | 预定义维度再套入产品 | 从 5 份报告的 180+ 原子特征中自底向上聚类 |
+| **先入为主** | 预定义维度再套入产品 | 从 8 份报告的 500+ 原子特征中自底向上聚类 |
 | **布尔化** | "有/无"二元判断 | 四级成熟度评分 (0-3)，捕捉实现深度差异 |
 | **等权重** | 所有维度一视同仁 | 场景驱动的动态权重分配 |
 | **忽视冲突** | 不记录特征互斥/替代关系 | 显式标注"互斥特征对"，避免重复计数 |
@@ -27,7 +27,7 @@
 ### A.1.2 特征归一化流程
 
 ```
-5 份垂直报告 × 8 维度 × 平均 9 个原子特征 ≈ 360 条原始特征
+8 份垂直报告 × 8 维度 × 平均 8 个原子特征 ≈ 500 条原始特征
        │
        ▼
 Step 1: 去重合并 — 合并跨产品的同名/同义特征
@@ -203,91 +203,91 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 #### D1: 通信广度与渠道归一化
 
-| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
-|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| IM 渠道数 | 决定 Agent 可触达用户的平台范围，渠道越多覆盖人群越广 | 24+ | 0 (CLI only) | 6 (TG/Slack/飞书/微信/企微/钉钉) | 18+ | 0 (IDE only) |
-| 流式输出 | 打字机效果实时反馈，降低用户等待焦虑，提升交互体验 | ✅ WS event | ✅ TUI | ✅ 飞书流式卡片/钉钉AI Card | ✅ KawaiiSpinner | ✅ SSE |
-| Voice | 语音唤醒+对话使 Agent 脱离屏幕，适用于驾驶/家务等不触屏场景 | ✅ Voice Wake/Talk | ❌ | ❌ | ✅ TTS (5 providers) | ❌ |
-| A2UI Canvas | Agent 可动态生成交互式 Web UI（图表/表单/仪表盘），从纯文本对话升级为富交互 | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Device Nodes | Agent 可通过 Camera/Screen/Location 感知物理世界，实现视觉辅助/屏幕理解/位置服务 | ✅ Camera/Screen/Location | ❌ | ❌ | ❌ | ❌ |
-| Channel Plugin 架构 | 允许社区开发新渠道，渠道扩展成本归零，生态效应：渠道数可无限增长 | ✅ 80+ exports | ❌ | ✅ Channel 基类 + Bus | ✅ Platform-aware toolsets | ❌ |
-| **得分** | | **4** | **1** | **3** | **4** | **0** |
-| 得分依据 | | 24 渠道 + Voice + Canvas + 80+ SDK | 无独立 IM channel，TUI CLI | 6 渠道 + 流式卡片 + 微信自举 | 18+ 平台 + TTS + platform-aware | IDE 内嵌，非独立 Gateway |
+| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
+|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
+| IM 渠道数 | 决定 Agent 可触达用户的平台范围，渠道越多覆盖人群越广 | 24+ | 0 (CLI only) | 6 | 18+ | 0 (IDE only) | 0 (CLI/TUI only) | 0 (CLI only) | 0 (CLI/TUI/Desktop) |
+| 流式输出 | 打字机效果实时反馈，降低用户等待焦虑，提升交互体验 | ✅ WS event | ✅ TUI | ✅ 飞书流式卡片/钉钉AI Card | ✅ KawaiiSpinner | ✅ SSE | ✅ Ink TUI 流式 | ✅ TUI | ✅ TUI + Desktop |
+| Voice | 语音唤醒+对话使 Agent 脱离屏幕，适用于驾驶/家务等不触屏场景 | ✅ Voice Wake/Talk | ❌ | ❌ | ✅ TTS (5 providers) | ❌ | ❌ (纯文本 CLI) | ❌ | ❌ |
+| A2UI Canvas | Agent 可动态生成交互式 Web UI（图表/表单/仪表盘），从纯文本对话升级为富交互 | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ (纯CLI) | ❌ | ❌ |
+| Device Nodes | Agent 可通过 Camera/Screen/Location 感知物理世界，实现视觉辅助/屏幕理解/位置服务 | ✅ Camera/Screen/Location | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| 多入口/远程 | 是否支持非 CLI 入口——SDK、Bridge、Remote、Desktop App | ✅ WebChat + Desktop Apps | ❌ | ✅ Web UI + HTTP API + ACP | ✅ Gateway + MCP Server + ACP | ✅ Cloud Agent gRPC | ✅ SDK/MCP/Bridge/Remote 六种入口 | ❌ (纯CLI) | ✅ Client/Server + Desktop App + Slack |
+| **得分** | | **4** | **1** | **3** | **4** | **0** | **2** | **1** | **2** |
+| 得分依据 | | 24渠道+Voice+Canvas | 无独立IM/TUI CLI | 6渠道+流式卡片+微信自举 | 18+平台+TTS+platform-aware | IDE内嵌 | 多入口统一内核但无IM | 纯CLI/TUI | CLI+TUI+Desktop+Client/Server |
 
 #### D2: 工具深度与执行环境
 
-| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
-|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| Shell 执行 | Agent 执行系统命令的核心能力——编译代码、安装依赖、运行脚本、操作进程 | ✅ | ✅ (120s timeout) | ✅ (虚拟路径翻译) | ✅ (3 种 container) | ✅ |
-| 文件操作 | Agent 读写文件的编辑器级能力——精确替换字符串、自动创建目录、防止并发写冲突 | ✅ | ✅ (6 种 Backend) | ✅ (FileOpLock) | ✅ | ✅ |
-| Browser | Agent 操控真实浏览器——模拟点击、截图分析、表单填写、动态内容抓取 | ✅ Playwright | ❌ | ❌ | ✅ | ❌ |
-| Sandbox 后端 | 决定 Agent 的执行隔离级别——Docker(进程级)、SSH(主机级)、Daytona(Serverless) | Docker/SSH/OpenShell (3) | 5 种 (State/FS/Shell/Store/Composite) | 四层隔离模式 | Docker/SSH/Daytona (3) | 局部 (闭源) |
-| ACP 跨 Agent | Agent 可调用外部 Agent (Claude Code/Codex) 作为子执行器，复用已有 Agent 生态 | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Git 集成 | Agent 自动 git commit/checkpoint——每次操作可回滚，形成可审计的操作历史 | ❌ | ❌ | ❌ | ✅ Checkpoint | ✅ git-core |
-| 虚拟路径翻译 | Agent 在沙箱中看到的路径与宿主真实路径自动映射，安全隔离同时保持文件操作语义一致 | ❌ | ❌ | ✅ 自动翻译 | ❌ | ❌ |
-| 沙箱生命周期 | 沙箱的创建/复用/销毁策略——是否延迟创建(lazy)、同 Thread 复用、自动清理、支持外置 Provider 接入 | mode(off/non-main/all) + scope(agent/session/shared) + sandbox CLI(recreate/list/explain) | 5 Provider 协议化 | ✅ acquire/release/shutdown + lazy_init + Thread 复用 + shutdown() 清理 | 6 Backend + daemon 空闲清理 + persistent 开关 | ❓ 闭源 |
-| **得分** | | **3** | **2** | **4** | **4** | **2** |
-| 得分依据 | | 3 Sandbox + Browser，但沙箱生命周期粗放 | 5 种后端但生命周期由 Provider 决定 | 唯一显式生命周期 API + 四层模式 + CI 检测 | 6 Backend + daemon 清理，但 task_id 共享 | 闭源不透明，Sandbox 细节未知 |
+| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
+|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
+| Shell 执行 | Agent 执行系统命令的核心能力——编译代码、安装依赖、运行脚本、操作进程 | ✅ | ✅ (120s timeout) | ✅ (虚拟路径翻译) | ✅ (3 种 container) | ✅ | ✅ Shell.ts / bwrap | ✅ Rust Shell | ✅ Shell |
+| 文件操作 | Agent 读写文件的编辑器级能力——精确替换字符串、自动创建目录、防止并发写冲突 | ✅ | ✅ (6 种 Backend) | ✅ (FileOpLock) | ✅ | ✅ | ✅ 文件操作 (推断: 完整) | ✅ Rust 文件操作 | ✅ 文件操作 |
+| Browser | Agent 操控真实浏览器——模拟点击、截图分析、表单填写、动态内容抓取 | ✅ Playwright | ❌ | ❌ | ✅ | ❌ | ❌ (纯CLI) | ❌ | ❌ |
+| Sandbox 后端 | 决定 Agent 的执行隔离级别——Docker(进程级)、SSH(主机级)、Daytona(Serverless) | Docker/SSH/OpenShell (3) | 5 种 (State/FS/Shell/Store/Composite) | 四层隔离模式 | Docker/SSH/Daytona (3) | 局部 (闭源) | bwrap + Seatbelt + macOS runtime (3) | Seatbelt + bwrap (2) | containers 包 (推断: Docker) |
+| ACP 跨 Agent | Agent 可调用外部 Agent (Claude Code/Codex) 作为子执行器，复用已有 Agent 生态 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ Swarm / Remote 模式 | ❓ | ❓ |
+| Git 集成 | Agent 自动 git commit/checkpoint——每次操作可回滚，形成可审计的操作历史 | ❌ | ❌ | ❌ | ✅ Checkpoint | ✅ git-core | ❓ (推断: 含 git 工具) | ❓ | ❓ |
+| 虚拟路径翻译 | Agent 在沙箱中看到的路径与宿主真实路径自动映射，安全隔离同时保持文件操作语义一致 | ❌ | ❌ | ✅ 自动翻译 | ❌ | ❌ | ❓ | ❓ | ❓ |
+| 沙箱生命周期 | 沙箱的创建/复用/销毁策略——是否延迟创建(lazy)、同 Thread 复用、自动清理、支持外置 Provider 接入 | mode(off/non-main/all)+scope(agent/session/shared)+CLI(recreate/list/explain) | 5 Provider 协议化 | ✅ acquire/release/shutdown+lazy_init+Thread复用+shutdown() | 6 Backend + daemon 空闲清理 + persistent 开关 | ❓ 闭源 | ✅ cleanupAfterCommand + SandboxManager | ❓ (Seatbelt 进程级, 推断: 命令结束即清理) | ❓ |
+| **得分** | | **3** | **2** | **4** | **4** | **2** | **4** | **3** | **3** |
+| 得分依据 | | 3 Sandbox + Browser，沙箱生命周期粗放 | 5 种后端但生命周期由 Provider 决定 | 唯一显式生命周期 API + 四层 + CI 检测 | 6 Backend + daemon 清理，但 task_id 共享 | 闭源不透明 | 四层sandbox+bwrap/Seatbelt+cleanup | Rust核心+OS级沙箱 | LSP+containers+Shell+文件 |
 
 #### D3: 智能决策与任务编排
 
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
 |------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| SubAgent 委派 | 复杂任务自动拆解为子任务分派给独立子Agent，每个子Agent有独立上下文和工具集 | ✅ sessions_spawn + subagent registry | ✅ 声明式/预编译/远程 | ✅ 双线程池(3+3) | ✅ delegate_task | ✅ customSubagents |
-| 并行执行 | 多个子Agent同时执行互不依赖的子任务，总耗时 = max(子任务耗时) 而非 sum | ✅ parallel subagent completion + grouped results | ✅ AsyncSubAgent | ✅ MAX=3 | ✅ max=3 | ❓ |
-| Plan/Todo | Agent 处理 3+ 步骤任务时自动创建 Todo 列表并实时更新进度，用户可跟踪任务进展 | ✅ update_plan tool (experimental, opt-in) | ✅ TodoListMiddleware | ✅ TodoListMiddleware | ❌ | ❌ |
-| Loop 检测 | 当 Agent 陷入死循环（反复调用同一工具无进展）时自动检测并强制终止，防止无限消耗 Token | ✅ tools.loopDetection: historySize/warningThreshold/criticalThreshold/detectors(genericRepeat/knownPollNoProgress/pingPong) + globalCircuitBreaker + postCompactionGuard | ✅ PatchToolCalls | ✅ LoopDetectionMW | ✅ tool_loop_guardrails | ❓ |
-| 上下文压缩 | 对话 Token 接近模型上限时自动压缩历史消息为摘要，避免因上下文溢出导致任务中断 | ✅ auto-compaction + midTurnPrecheck + compaction retry + compaction notifier + sessions_yield | ✅ 自动压缩(85%触发) | ❌ | ✅ 自动压缩(50%触发) | ❓ |
-| Middleware 层数 | 管道化处理请求的中间件数量——越多代表请求处理越精细（工具注入/权限检查/摘要/记忆） | pi-embedded-runner (自有引擎，非外部 PI Agent) | 13 层 | 18 层 (完整) | N/A (自有Loop) | ❓ |
-| 工具调用恢复 | 工具调用失败后自动 patch/重试/降级，非简单报错给用户——提升长任务成功率 | ✅ orphan recovery + compaction retry + tool-result guard | ✅ PatchToolCalls | ✅ LoopDetection hard stop | ✅ Guardrails hard_stop | ❓ |
-| **得分** | | **4** | **4** | **3** | **4** | **2** |
-| 得分依据 | | 完整 SubAgent + Loop检测 + Compaction + update_plan — PI Agent 是嵌入式引擎非外部依赖 | 13 层 MW + 3 形态 SubAgent + 压缩 | 18 层 MW + 双线程池 + Loop检测 | Guardrails + 压缩 + SubAgent + Budget | 闭源无法验证，仅从类型推断基础能力 |
+| SubAgent 委派 | 复杂任务自动拆解为子任务分派给独立子Agent，每个子Agent有独立上下文和工具集 | ✅ sessions_spawn + subagent registry | ✅ 声明式/预编译/远程 | ✅ 双线程池(3+3) | ✅ delegate_task | ✅ customSubagents | ✅ SubAgent+Coordinator+Swarm 三套 | ❓ (agent-graph-store 暗示) | ✅ @general subagent |
+| 并行执行 | 多个子Agent同时执行互不依赖的子任务，总耗时 = max(子任务耗时) 而非 sum | ✅ parallel subagent + grouped results | ✅ AsyncSubAgent | ✅ MAX=3 | ✅ max=3 | ❓ | ✅ Swarm teammates 并行 | ❓ | ❓ (推断: 串行) |
+| Plan/Todo | Agent 处理 3+ 步骤任务时自动创建 Todo 列表并实时更新进度，用户可跟踪任务进展 | ✅ update_plan tool (experimental, opt-in) | ✅ TodoListMiddleware | ✅ TodoListMiddleware | ❌ | ❌ | ✅ TaskCreate/TaskStop 工具 | ❓ | ❓ |
+| Loop 检测 | 当 Agent 陷入死循环（反复调用同一工具无进展）时自动检测并强制终止，防止无限消耗 Token | ✅ tools.loopDetection: + detectors(3种) + circuitBreaker + postCompactionGuard | ✅ PatchToolCalls | ✅ LoopDetectionMW | ✅ tool_loop_guardrails | ❓ | ✅ compact 压缩机制 (推断: 含 loop 检测) | ❓ | ❓ |
+| 上下文压缩 | 对话 Token 接近模型上限时自动压缩历史消息为摘要，避免因上下文溢出导致任务中断 | ✅ auto-compaction + midTurnPrecheck + retry + notifier | ✅ 自动压缩(85%触发) | ❌ | ✅ 自动压缩(50%触发) | ❓ | ✅ compact + hooks 回调 | ❓ | ❓ |
+| Middleware/Agent 引擎 | 管道化处理请求的中间件/引擎层数——越多代表请求处理越精细 | pi-embedded-runner (嵌入自有引擎) | 13 层 | 18 层 (完整) | N/A (自有Loop) | ❓ | QueryEngine (六层架构统一内核) | agent-graph-store (图状态机) | ❓ (monorepo, 推断: 自有引擎) |
+| 工具调用恢复 | 工具调用失败后自动 patch/重试/降级，非简单报错给用户——提升长任务成功率 | ✅ orphan recovery + compaction retry + tool-result guard | ✅ PatchToolCalls | ✅ LoopDetection hard stop | ✅ Guardrails hard_stop | ❓ | ✅ StreamingToolExecutor (推断: 含重试) | ❓ | ❓ |
+| **得分** | | **4** | **4** | **3** | **4** | **2** | **4★** | **2** | **3** |
+| 得分依据 | | SubAgent+Loop+Compaction+Plan | 13层MW+3形态SubAgent+压缩 | 18层MW+双线程池+Loop检测 | Guardrails+压缩+SubAgent+Budget | 闭源无法验证 | 三套Multi-Agent超越评分体系 | agent-graph-store暗示编排但无显式SubAgent | build/plan/general三种Agent+子Agent |
 
 #### D4: 安全与多租户隔离
 
-| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
-|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| DM 配对 | 未知用户首次 DM 时需手动审批配对码，防止恶意用户直接操控 Agent | ✅ pairing 默认 | ❌ | ❌ | ✅ Gateway DM | ❌ |
-| Sandbox 隔离 | Agent 执行环境与宿主物理/逻辑隔离——防止文件篡改、命令注入、资源滥用 | ✅ 3 种 | ✅ 5 种 (执行) | ✅ 四层 | ✅ 3 种 | ❓ |
-| 工具白名单 | 按 Sandbox 类型限制 Agent 可使用的工具——如禁止非受信 session 使用 Browser/Cron | ✅ Allow/Deny | ⚠️ 文件权限 | ✅ 四层控制 | ✅ Guardrails | ❓ |
-| SSRF 防护 | 防止 Agent 被诱导访问内网服务（如 `http://169.254.169.254/`），阻断横向移动攻击 | ✅ ssrf-policy | ❌ | ❌ | ✅ website_blocklist | ❓ |
-| 威胁检测 | 运行时检测恶意行为模式（如异常 Shell 命令序列），主动告警或阻断 | ❌ | ❌ | ❌ | ✅ Tirith | ❓ |
-| Vault/Secret | API Key 等敏感凭证的加密存储、轮换和绑定——防止密钥泄露和硬编码 | ⚠️ secret-ref | ❌ | ❌ | ⚠️ .env + auth.json | ❓ |
-| 审计日志 | 完整记录 Agent 的所有操作（谁/何时/做了什么/结果），支持合规审计和事后溯源 | ❌ | ❌ | ❌ | ✅ hermes_logging | ❓ |
-| 多租户隔离 | 租户级资源配额 + 配置分离 + 数据隔离——企业级 CMA 的核心需求。当前所有产品均为 session/user 级隔离，无真正租户 | ❌ 无 tenant 概念 | ❌ 无 tenant 概念 | ⚠️ user_id 级 + K3s Pod；社区需求 #2318 | ❌ 单租户架构；沙箱 task_id 全局共享 | ❓ 闭源 |
-| **得分** | | **2** | **2** | **3** | **2** | **1** |
-| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 |
+| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
+|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
+| DM 配对 | 未知用户首次 DM 时需手动审批配对码，防止恶意用户直接操控 Agent | ✅ pairing 默认 | ❌ | ❌ | ✅ Gateway DM | ❌ | ❌ (纯CLI, 无DM概念) | ❌ (纯CLI) | ❌ (纯CLI) |
+| Sandbox 隔离 | Agent 执行环境与宿主物理/逻辑隔离——防止文件篡改、命令注入、资源滥用 | ✅ 3 种 | ✅ 5 种 (执行) | ✅ 四层 | ✅ 3 种 | ❓ | ✅ 四层sandbox(bwrap/Seatbelt/macOS runtime) | ✅ Seatbelt+bwrap OS级沙箱 | ✅ containers 包 |
+| 工具白名单 | 按 Sandbox 类型限制 Agent 可使用的工具——如禁止非受信 session 使用 Browser/Cron | ✅ Allow/Deny | ⚠️ 文件权限 | ✅ 四层控制 | ✅ Guardrails | ❓ | ✅ bashPermissions + Tool Permission 层 | ❓ | ✅ plan Agent 只读 |
+| SSRF 防护 | 防止 Agent 被诱导访问内网服务（如 `http://169.254.169.254/`），阻断横向移动攻击 | ✅ ssrf-policy | ❌ | ❌ | ✅ website_blocklist | ❓ | ✅ Sandbox 网络隔离 (bwrap) | ✅ CODEX_SANDBOX_NETWORK_DISABLED | ❓ |
+| 威胁检测 | 运行时检测恶意行为模式（如异常 Shell 命令序列），主动告警或阻断 | ❌ | ❌ | ❌ | ✅ Tirith | ❓ | ✅ SandboxDoctorSection 诊断 | ❓ | ❓ |
+| Vault/Secret | API Key 等敏感凭证的加密存储、轮换和绑定——防止密钥泄露和硬编码 | ⚠️ secret-ref | ❌ | ❌ | ⚠️ .env + auth.json | ❓ | ❓ (Anthropic API key 管理, 推断: 本地加密) | ❓ | ✅ identity 包 |
+| 审计日志 | 完整记录 Agent 的所有操作（谁/何时/做了什么/结果），支持合规审计和事后溯源 | ❌ | ❌ | ❌ | ✅ hermes_logging | ❓ | ✅ sessionStorage 完整持久化 (含 transcript) | ❓ | ❓ |
+| 多租户隔离 | 租户级资源配额 + 配置分离 + 数据隔离——企业级 CMA 的核心需求。当前所有产品均为 session/user 级隔离，无真正租户 | ❌ 无 tenant 概念 | ❌ 无 tenant 概念 | ⚠️ user_id 级 + K3s Pod | ❌ 单租户架构 | ❓ 闭源 | ❌ 本地单用户 | ❌ 本地单用户 | ❌ 本地单用户 |
+| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **3** | **2** |
+| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 | 四层sandbox+BashPermission+SandboxDoctor | Seatbelt+bwrap OS级沙箱+网络禁用 | plan只读+bash权限提问 |
 
 #### D5: 持久化与记忆系统
 
-| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
-|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| Session 持久化 | 对话不因重启丢失——Agent 可从上次断点继续，长任务（数小时）可跨 session 执行 | ✅ Workspace | ✅ LangGraph checkpointer | ✅ SQLite/PostgreSQL | ✅ SQLite FTS5 | ✅ SQLite |
-| Memory 系统 | 跨会话记住用户偏好/事实——"上次你说过 X"不再需要用户重复，Agent 持续学习 | ✅ AGENTS.md/SOUL.md | ✅ AGENTS.md | ✅ MemoryMiddleware | ✅ Honcho/mem0 | ❌ |
-| Vector Memory | 语义搜索历史对话——"帮找我们讨论过的那个 PDF 方案"，基于内容而非关键词检索 | ✅ sqlite-vec | ❌ | ❌ | ✅ memory tool | ❌ |
-| Session Search | 全文搜索所有历史会话——用户可以问"我之前怎么配置的数据库"并得到精确引用 | ❌ | ❌ | ❌ | ✅ FTS5 + LLM 摘要 | ❌ |
-| Agent 记忆文件 | 声明式注入项目上下文——AGENTS.md(项目规范)、SOUL.md(Agent 人设)、TOOLS.md(工具偏好) | ✅ AGENTS.md/SOUL.md | ✅ AGENTS.md | ❌ | ✅ AGENTS.md/SOUL.md | ❌ |
-| 自动压缩 | 长对话自动摘要存储，释放上下文窗口同时保留关键信息——实现"无界记忆" | ❌ | ✅ SummarizationMW | ❌ | ✅ compressor | ❓ |
+| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
+|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
+| Session 持久化 | 对话不因重启丢失——Agent 可从上次断点继续，长任务（数小时）可跨 session 执行 | ✅ Workspace | ✅ LangGraph checkpointer | ✅ SQLite/PostgreSQL | ✅ SQLite FTS5 | ✅ SQLite | ✅ sessionStorage + transcript 持久化 | ✅ agent-graph-store | ✅ SQLite (Drizzle) |
+| Memory 系统 | 跨会话记住用户偏好/事实——"上次你说过 X"不再需要用户重复，Agent 持续学习 | ✅ AGENTS.md/SOUL.md | ✅ AGENTS.md | ✅ MemoryMiddleware | ✅ Honcho/mem0 | ❌ | ✅ memdir + SessionMemory 分层记忆 | ❌ | ❌ |
+| Vector Memory | 语义搜索历史对话——"帮找我们讨论过的那个 PDF 方案"，基于内容而非关键词检索 | ✅ sqlite-vec | ❌ | ❌ | ✅ memory tool | ❌ | ❓ | ❌ | ❌ |
+| Session Search | 全文搜索所有历史会话——用户可以问"我之前怎么配置的数据库"并得到精确引用 | ❌ | ❌ | ❌ | ✅ FTS5 + LLM 摘要 | ❌ | ❌ (transcript 文件化但无搜索) | ❌ | ❌ |
+| Agent 记忆文件 | 声明式注入项目上下文——AGENTS.md(项目规范)、SOUL.md(Agent 人设)、TOOLS.md(工具偏好) | ✅ AGENTS.md/SOUL.md | ✅ AGENTS.md | ❌ | ✅ AGENTS.md/SOUL.md | ❌ | ❓ (推断: system prompt 替代) | ❌ | ❌ |
+| 自动压缩 | 长对话自动摘要存储，释放上下文窗口同时保留关键信息——实现"无界记忆" | ❌ | ✅ SummarizationMW | ❌ | ✅ compressor | ❓ | ✅ compact + hooks | ❓ | ❓ |
 | Skills 自动管理 | Agent 从经验中自动创建/改进 Skills，无人值守地优化自身能力——自我完善的闭环 | ❌ | ❌ | ❌ | ✅ Curator 自动 prune | ❌ |
-| 自我完善闭环 | 创建 → 使用 → 改进 → 归档的完整生命周期——Agent 越用越强而非越用越旧 | ❌ | ❌ | ❌ | ✅ 创建→使用→改进 | ❌ |
-| Memory 多用户隔离 | 不同用户间的 Memory 是否隔离——Mem0 按 user_id 过滤、Honcho 按 session_key、文件按 workspace 路径 | ✅ per-agent workspace 文件隔离 | ❌ 无 user 概念 | ✅ per-user_id 路径隔离 | ✅ Mem0 user_id filter + Honcho session_key | ❓ 闭源 |
-| **得分** | | **2** | **3** | **2** | **4** | **1** |
-| 得分依据 | | 文件记忆+Vector+per-agent 隔离 | AGENTS.md+压缩，缺搜索/Curator/多用户 | 基础持久化+user_id Memory 隔离 | 全功能唯一：FTS5+Curator+自我完善+user_id Memory | 仅 SQLite 基础存储 |
+| 自我完善闭环 | 创建 → 使用 → 改进 → 归档的完整生命周期——Agent 越用越强而非越用越旧 | ❌ | ❌ | ❌ | ✅ 创建→使用→改进 | ❌ | ❌ (推断: 无) | ❌ | ❌ |
+| Memory 多用户隔离 | 不同用户间的 Memory 是否隔离——Mem0 按 user_id 过滤、Honcho 按 session_key、文件按 workspace 路径 | ✅ per-agent workspace 文件隔离 | ❌ 无 user 概念 | ✅ per-user_id 路径隔离 | ✅ Mem0 user_id filter + Honcho session_key | ❓ 闭源 | ❌ 本地单用户 | ❌ 本地单用户 | ❌ 本地单用户 |
+| **得分** | | **2** | **3** | **2** | **4** | **1** | **4** | **2** | **2** |
+| 得分依据 | | 文件记忆+Vector+per-agent 隔离 | AGENTS.md+压缩，缺搜索/Curator/多用户 | 基础持久化+user_id Memory 隔离 | 全功能唯一：FTS5+Curator+自我完善+user_id Memory | 仅 SQLite 基础存储 | 五层记忆(sessionStorage+memdir+SessionMemory+compact+hooks) | agent-graph-store 持久化但无分层记忆 | SQLite+Drizzle+session 基础持久化 |
 
 #### D6: 扩展性与生态开放性
 
-| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
-|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| Skills 系统 | 通过 Markdown/YAML 声明式定义 Agent 专项能力，非代码即可扩展——降低扩展门槛到非开发者 | ✅ SKILL.md | ✅ SKILL.md | ✅ SKILL.md | ✅ SKILL.md | ❌ |
-| Plugin SDK | 开发者可深度扩展 Agent 子系统（渠道/审批/回复/沙箱/TTS）——80+ 导出意味着几乎无不可扩展的子系统 | ✅ 80+ exports | ⚠️ Middleware API | ❌ | ✅ plugins/ | ❌ |
-| MCP Client | 消费外部 MCP Server 提供的工具——数百个现成 MCP Server 即插即用，无需为每个 API 写适配 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| MCP Server | 将自身工具暴露为 MCP Server 供其他 Agent 调用——实现 Agent-to-Agent 工具共享 | ❓ | ❌ | ❌ | ✅ mcp_serve.py | ❓ |
-| ACP | Agent Communication Protocol 跨进程 Agent 互操作——调用 Claude Code/Codex 等外部 Agent | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Skills Hub | 社区技能市场——用户可安装他人发布的 Skills，避免重复造轮子，加速能力积累 | ✅ ClawHub | ❌ | ❌ | ✅ agentskills.io | ❌ |
-| Channel 扩展 API | 社区可开发新消息渠道插件——WhatsApp/Telegram 之外，企业可自建飞书/钉钉/Teams 适配器 | ✅ plugin channel | ❌ | ✅ Channel 基类 | ❌ | ❌ |
-| Provider 数量 | 支持的模型提供商数——决定用户的模型选择自由度和被锁定风险 | 20+ | 20+ | 10+ (注释模板) | 200+ (OpenRouter) | ❓ (Cloud) |
-| **得分** | | **4** | **3** | **3** | **4** | **2** |
-| 得分依据 | | 80+ Plugin + Hub + Channel API | 强 Middleware API 但无 Hub/Channel | 完整 Skills+MCP+ACP，缺 Plugin SDK | 双向 MCP + Hub + Curator + 200 Provider | MCP+SubAgents，闭源限制扩展深度 |
+| 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
+|------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
+| Skills 系统 | 通过 Markdown/YAML 声明式定义 Agent 专项能力，非代码即可扩展——降低扩展门槛到非开发者 | ✅ SKILL.md | ✅ SKILL.md | ✅ SKILL.md | ✅ SKILL.md | ❌ | ✅ Skills 系统 (推断: SKILL.md 兼容) | ❌ | ❌ |
+| Plugin SDK | 开发者可深度扩展 Agent 子系统（渠道/审批/回复/沙箱/TTS）——80+ 导出意味着几乎无不可扩展的子系统 | ✅ 80+ exports | ⚠️ Middleware API | ❌ | ✅ plugins/ | ❌ | ✅ Plugin 系统 | ❌ | ✅ Plugin + Extensions |
+| MCP Client | 消费外部 MCP Server 提供的工具——数百个现成 MCP Server 即插即用，无需为每个 API 写适配 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ MCP 集成 | ✅ codex-mcp | ❓ (推断: 支持) |
+| MCP Server | 将自身工具暴露为 MCP Server 供其他 Agent 调用——实现 Agent-to-Agent 工具共享 | ❓ | ❌ | ❌ | ✅ mcp_serve.py | ❓ | ✅ Bridge 模式 | ❓ | ❓ |
+| ACP | Agent Communication Protocol 跨进程 Agent 互操作——调用 Claude Code/Codex 等外部 Agent | ✅ | ✅ | ✅ | ✅ | ❌ | ❓ (推断: 通过 MCP Bridge 实现) | ❓ | ❓ |
+| Skills Hub | 社区技能市场——用户可安装他人发布的 Skills，避免重复造轮子，加速能力积累 | ✅ ClawHub | ❌ | ❌ | ✅ agentskills.io | ❌ | ❌ (商业产品, 无社区 Hub) | ❌ | ❌ |
+| Channel 扩展 API | 社区可开发新消息渠道插件——WhatsApp/Telegram 之外，企业可自建飞书/钉钉/Teams 适配器 | ✅ plugin channel | ❌ | ✅ Channel 基类 | ❌ | ❌ | ❌ (纯CLI, 无 Channel 概念) | ❌ | ✅ Slack 集成 |
+| Provider 数量 | 支持的模型提供商数——决定用户的模型选择自由度和被锁定风险 | 20+ | 20+ | 10+ (注释模板) | 200+ (OpenRouter) | ❓ (Cloud) | 1 (仅 Anthropic) | 1 (仅 OpenAI) | 多 (provider-agnostic) |
+| **得分** | | **4** | **3** | **3** | **4** | **2** | **4** | **2** | **4** |
+| 得分依据 | | 80+ Plugin + Hub + Channel API | 强 Middleware API 但无 Hub/Channel | 完整 Skills+MCP+ACP，缺 Plugin SDK | 双向 MCP + Hub + Curator + 200 Provider | MCP+SubAgents，闭源限制扩展深度 | Skills+Plugin+MCP+Bridge (单 vendor) | MCP+SDK 但无 plugin/skills | Plugin+Extensions+SDK+provider-agnostic |
 
 ---
 
