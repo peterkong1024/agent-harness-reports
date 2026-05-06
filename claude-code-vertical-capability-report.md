@@ -1,11 +1,12 @@
 # Claude Code 垂直能力解构报告
 
-> 项目: Anthropic Claude Code (社区分析)
-> 分析源: liuup/claude-code-analysis (2.2k stars)
+> 项目: Anthropic Claude Code (源码级分析)
+> 分析源: 泄露 TypeScript 源码 (直读 src/ 目录)
 > 分析日期: 2026-05-06
 > 分析方法: 特征逆向挖掘法 (Feature Reverse Mining)
-> 数据来源权威性层级: 泄露源码社区分析 > 官方文档 > 推断
-> 特殊性: 基于 npm 包 source map 泄露的源码逆向分析，非官方开源；源码语言 TypeScript (1902 文件, 513k 行)
+> 数据来源权威性层级: 泄露源码直读 > 推断 > 社区二手分析
+> 特殊性: 基于 npm 包 source map 泄露的 TypeScript 源码，非官方开源；源码语言 TypeScript (1884 文件)
+> 仓库: /Users/kongpei/workspace/project/harness/claude-code/src/
 
 ---
 
@@ -13,141 +14,183 @@
 
 | 属性 | 值 | 来源 |
 |------|-----|------|
-| 产品定位 | "本地代码 Agent 平台" — 面向代码工作流的本地 agent 平台，非命令行聊天工具 | 社区分析 README |
+| 产品定位 | "本地代码 Agent 平台" — 面向代码工作流的本地 agent 平台，非命令行聊天工具 | 源码体量 + 架构复杂度 |
 | 开发者 | Anthropic | 官方产品 |
-| 分析仓库 | liuup/claude-code-analysis (2.2k stars) | GitHub |
-| 源码语言 | TypeScript (1902 文件, 513k 行) | 仓库统计 |
+| 分析源 | 泄露 TypeScript 源码 (1884 文件) | 仓库统计 |
+| 源码语言 | TypeScript (.ts/.tsx) | src/ 目录 |
 | 许可证 | 非开源 (source map 泄露逆向) | 事实陈述 |
-| 核心入口 | `cli.tsx` → `main.tsx` → `launchRepl` | analysis/cli.tsx, analysis/main.tsx |
-| 执行内核 | `query.ts` / `QueryEngine.ts` | analysis/query.ts |
-| CLI 架构 | React/Ink 终端 UI (JSX 组件) | analysis/cli.tsx |
-| Tool 系统 | `Tool.ts` → `toolOrchestration` → `StreamingToolExecutor` | analysis/Tool.ts |
-| 权限系统 | `Perm` 层 + `bashPermissions` | analysis/Perm/ |
-| 配置系统 | `init.ts` / `setup.ts` → 初始化引导 | analysis/init.ts, analysis/setup.ts |
-| 上下文管理 | `compact` 压缩 + session 管理 | analysis/compact/ |
-| Memory | 分层: sessionStorage / memdir / SessionMemory / hooks | analysis/sessionStorage, analysis/memdir |
-| 扩展机制 | MCP / Plugin / Skills / Remote / Bridge / Swarm | analysis/MCP/, analysis/Plugin/, analysis/Swarm/ |
+| 核心入口 | `entrypoints/cli.tsx` → `init.ts` → `launchRepl`/`main.tsx` | `entrypoints/cli.tsx:33` |
+| 执行内核 | `query.ts` (async generator loop) + `QueryEngine.ts` (class wrapper) | `query.ts:219`, `QueryEngine.ts:184` |
+| CLI 架构 | React/Ink 终端 UI (JSX 组件, React Compiler) | `components/` 目录, 所有 .tsx 含 `react/compiler-runtime` |
+| Tool 系统 | `Tool.ts` (type system) → `tools.ts` (registry) → `toolOrchestration.ts` (execution) | `Tool.ts:1-792`, `tools.ts:1-389`, `services/tools/toolOrchestration.ts` |
+| Streaming Tool | `StreamingToolExecutor` — 工具执行实时流式输出 | `services/tools/StreamingToolExecutor.ts`, `query.ts:96` |
+| 权限系统 | `types/permissions.ts` (PermissionMode/PermissionResult) + `utils/permissions/` | `Tool.ts:43-47`, `utils/permissions/` |
+| 配置系统 | `init.ts` / `setup.ts` → 初始化引导, `utils/config.ts` | `entrypoints/cli.tsx:33` |
+| 上下文管理 | `services/compact/compact.ts` (primary) + `apiMicrocompact.ts` + `reactiveCompact` + `snipCompact` + `contextCollapse` | `services/compact/` (11 files) |
+| Memory | 5 层: User/Project/Local/Managed/AutoMem + TeamMem (feature gate) | `utils/memory/types.ts:3-10`, `memdir/memdir.ts:34-38` |
+| 扩展机制 | MCP / Plugin / Skills / Remote / Bridge / Swarm / Tasks / Hooks | `tools/MCPTool/`, `utils/mcp/`, `utils/plugins/`, `remote/`, `utils/swarm/` |
+| Sandbox | `@anthropic-ai/sandbox-runtime` 封装, SandboxManager + SandboxRuntimeConfig + SandboxViolationStore + SandboxDoctorSection + SandboxPermissionRequest | `utils/sandbox/sandbox-adapter.ts:7-22` |
+| 分析系统 | GrowthBook feature flags (100+ gates) + Statsig + Datadog | `services/analytics/` (8 files) |
+| Multi-Agent | 6 个 Built-in Agents + Fork Subagent + Coordinator→Workers + Swarm/Teammate | `tools/AgentTool/builtInAgents.ts` |
 
-> 推断: Claude Code 的定位是 Anthropic 对 Cursor/Copilot 生态的降维打击 — 不做 IDE 插件，而是做一个本地 agent 平台，通过 CLI + REPL + SDK + MCP + Remote 多入口覆盖从个人开发者到团队的代码工作流。其架构复杂度 (1902 文件, 513k 行) 远超一般 CLI 工具，反映了一个完整的 agent 操作系统级设计。
+> 推断: Claude Code 的定位是 Anthropic 对 Cursor/Copilot 生态的降维打击 — 不做 IDE 插件，而是做一个本地 agent 平台，通过 CLI + REPL + SDK + MCP + Remote 多入口覆盖从个人开发者到团队的代码工作流。其架构复杂度 (1884 文件) 远超一般 CLI 工具，反映了一个完整的 agent 操作系统级设计。
 
 ---
 
 ## 一、架构图提取
 
-### 1.1 系统架构 (基于社区分析 README 提取)
+### 1.1 六层系统架构
 
-Source: `liuup/claude-code-analysis` README
+Source: 源码直读 `entrypoints/cli.tsx` → `init.ts` → `QueryEngine.ts`/`query.ts` → `Tool.ts`/`tools.ts` → `utils/`
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                        Claude Code Architecture                           │
+│                        Claude Code 六层架构                                │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                      Entry Layer                                    │    │
-│  │  CLI (cli.tsx) │ REPL (launchRepl) │ SDK │ MCP │ Bridge │ Remote │    │
-│  └────────────┬──────────────────────┬───────────────────────────────┘    │
-│               │                      │                                     │
-│               ▼                      ▼                                     │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                    Initialization Layer                             │    │
-│  │  init.ts → setup.ts → config resolution → auth → context prep    │    │
-│  └────────────────────────────┬─────────────────────────────────────┘    │
+│  Layer 1: Entrypoints                                                    │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  CLI (entrypoints/cli.tsx) │ SDK (entrypoints/agentSdkTypes.js)     │ │
+│  │  print.ts (headless) │ Remote (remote/SessionsWebSocket.ts)        │ │
+│  │  MCP Server (utils/claudeInChrome/mcpServer.js)                   │ │
+│  └────────────────────────────┬───────────────────────────────────────┘ │
 │                               │                                            │
-│                               ▼                                            │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                  TUI / REPL Layer                                   │    │
-│  │  ┌─────────────────────────────────────────────────────────────┐ │    │
-│  │  │  React/Ink Components (JSX) → terminal rendering              │ │    │
-│  │  │  Command Registry (commands.ts) → slash commands             │ │    │
-│  │  └─────────────────────────────────────────────────────────────┘ │    │
-│  └────────────────────────────┬─────────────────────────────────────┘    │
+│  Layer 2: Bootstrap / Init                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  entrypoints/cli.tsx:33 main() → dynamic import init → config     │ │
+│  │  bootstrap/state.js: sessionId, cwd, model, feature flags, usage   │ │
+│  │  utils/config.js → settings resolution (user/project/local/managed)│ │
+│  └────────────────────────────┬───────────────────────────────────────┘ │
 │                               │                                            │
-│                               ▼                                            │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                    Execution Kernel                                 │    │
-│  │  ┌──────────────────────────────────────────────────────────┐    │    │
-│  │  │  Query Engine (query.ts / QueryEngine.ts)                  │    │    │
-│  │  │    LLM Request → Tool Call → Result → Iterate             │    │    │
-│  │  │    Compact: context compression / truncation              │    │    │
-│  │  └──────────────────────────────────────────────────────────┘    │    │
-│  │                                                                     │    │
-│  │  ┌──────────────────┐  ┌──────────────────┐  ┌───────────────┐   │    │
-│  │  │  Tool System      │  │  Permission      │  │  Sandbox      │   │    │
-│  │  │  Tool.ts          │  │  Perm/           │  │  四层结构      │   │    │
-│  │  │  toolOrchestration│  │  bashPermissions │  │  shouldUse→    │   │    │
-│  │  │  StreamingTool    │  │                  │  │  convertTo→   │   │    │
-│  │  │  Executor         │  │                  │  │  Shell.ts→    │   │    │
-│  │  │                   │  │                  │  │  cleanup      │   │    │
-│  │  └──────────────────┘  └──────────────────┘  └───────────────┘   │    │
-│  └──────────────────────────────────────────────────────────────────┘    │
-│                                                                           │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                      Subsystems                                     │    │
-│  │                                                                      │    │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │    │
-│  │  │  Memory Layer    │  │  Context Mgmt   │  │  Extension        │  │    │
-│  │  │  sessionStorage  │  │  compact/       │  │  MCP/             │  │    │
-│  │  │  memdir/         │  │  context        │  │  Plugin/          │  │    │
-│  │  │  SessionMemory   │  │  window mgmt    │  │  Skills/          │  │    │
-│  │  │  hooks/          │  │                 │  │  Remote/          │  │    │
-│  │  │                  │  │                 │  │  Bridge/          │  │    │
-│  │  │                  │  │                 │  │  Swarm            │  │    │
-│  │  └─────────────────┘  └─────────────────┘  └──────────────────┘  │    │
-│  └──────────────────────────────────────────────────────────────────┘    │
-│                                                                           │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                    Multi-Agent Layer                                │    │
-│  │  SubAgent (isolated context) │ Coordinator → Workers │ Swarm     │    │
-│  │  (三套 multi-agent 协作模式并存)                                     │    │
-│  └──────────────────────────────────────────────────────────────────┘    │
+│  Layer 3: TUI / REPL (React/Ink)                                       │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  Ink.js components: Box, Text, Select, Spinner                      │ │
+│  │  commands/ directory: 30+ slash commands (session, agent, model…)  │ │
+│  │  components/permissions/: PermissionDialog, SandboxPermissionRequest│ │
+│  └────────────────────────────┬───────────────────────────────────────┘ │
+│                               │                                            │
+│  Layer 4: Execution Kernel                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  QueryEngine.ts (class, stateful) / query.ts (async generator)      │ │
+│  │    while loop: context assembly → LLM request → stream → tool exec │ │
+│  │    transitions: Continue (more tools) → Terminal (finish)           │ │
+│  │    state: messages, toolUseContext, autoCompactTracking, turnCount  │ │
+│  │    compact: reactiveCompact / autoCompact / snipCompact / collapse  │ │
+│  └────────────────────────────┬───────────────────────────────────────┘ │
+│                               │                                            │
+│  Layer 5: Tool / Permission / Memory / Sandbox                          │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  tools.ts: 40+ tools registered (Bash, Read, Write, Edit, Grep,    │ │
+│  │    Glob, Agent, Skill, MCP, WebFetch, WebSearch, Task*, TodoWrite, │ │
+│  │    PlanMode, Worktree, LSP, AskUser, Config, REPL, Cron, …)        │ │
+│  │  Tool.ts: type system (ToolDef, ToolUseContext, PermissionResult)   │ │
+│  │  toolOrchestration.ts + StreamingToolExecutor.ts                    │ │
+│  │  sandbox-adapter.ts: SandboxManager + SandboxRuntimeConfig (985 LoC)│ │
+│  │  memory/: types.ts (5 types + TeamMem gate) + memdir/memdir.ts     │ │
+│  │  sessionStorage.ts: 5105 LoC transcript logging + JSONL persistence │ │
+│  └────────────────────────────┬───────────────────────────────────────┘ │
+│                               │                                            │
+│  Layer 6: Extensions / Remote / Swarm                                    │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  MCP: tools/MCPTool/MCPTool.ts + utils/mcpWebSocketTransport.ts    │ │
+│  │       + services/mcp/MCPConnectionManager.tsx                       │ │
+│  │  Plugin: utils/plugins/pluginLoader.js + commands/plugin/           │ │
+│  │  Skills: skills/loadSkillsDir.js + utils/skills/skillChangeDetector │ │
+│  │  Remote: remote/RemoteSessionManager.ts + remotePermissionBridge.ts │ │
+│  │  Swarm: utils/swarm/ (constants, inProcessRunner, spawn*, backends)│ │
+│  │  Bridge: utils/teammateMailbox.ts + teammate.ts (292 LoC)           │ │
+│  │  Hooks: utils/hooks.js + hooks/postSamplingHooks.js                │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Tool 调用链路
+### 1.2 Sandbox 四层结构
 
-Source: `analysis/Tool.ts` → `analysis/toolOrchestration` → `analysis/StreamingToolExecutor`
-
-```
-User Input
-  │
-  ├─ QueryEngine.process(user_message)
-  │    │
-  │    ├─ Context assembly: system prompt + tools + memory + skills
-  │    │
-  │    ├─ LLM Request → response with tool_calls
-  │    │
-  │    ├─ Tool.ts dispatch:
-  │    │    ├─ File tools: read_file / write_file / patch / search_files / glob
-  │    │    ├─ Shell tools: bash / shell (via Shell.ts, with sandbox)
-  │    │    ├─ Code tools: edit / replace / apply_patch
-  │    │    ├─ SubAgent: task (spawn isolated agent)
-  │    │    ├─ MCP tools: dynamic from connected MCP servers
-  │    │    └─ Skill tools: skill-specific tools from loaded skills
-  │    │
-  │    ├─ toolOrchestration: streaming execution + multi-tool parallel
-  │    │    └─ StreamingToolExecutor: real-time output streaming
-  │    │
-  │    └─ Result → messages.append(tool_result) → iterate
-  │
-  └─ Final response → user
-```
-
-### 1.3 Sandbox 四层结构
-
-Source: `analysis/Sandbox/` 相关文件
+Source: `utils/sandbox/sandbox-adapter.ts:985` 完整实现
 
 ```
-shouldUseSandbox()                    ← 决策层: 是否需要沙箱
-       │
-       ▼
-convertToConfig()                     ← 配置层: 生成沙箱配置
-       │
-       ▼
-bashPermissions                       ← 权限层: 细粒度命令权限
-       │
-       ▼
-Shell.ts / execute / cleanup          ← 执行层: 实际执行与清理
+┌─────────────────────────────────────────────────────────────────┐
+│                    Sandbox 四层结构 (sandbox-adapter.ts)          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Layer 1: 决策层 (Should Use?)                                   │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ SandboxManager.isSupportedPlatform()                       │ │
+│  │ SandboxManager.isSandboxEnabledInSettings()                │ │
+│  │ shouldAllowManagedSandboxDomainsOnly()                     │ │
+│  │ shouldAllowManagedReadPathsOnly()                          │ │
+│  └────────────────────────────┬───────────────────────────────┘ │
+│                               │                                   │
+│  Layer 2: 配置层 (convertToSandboxRuntimeConfig)                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ SettingsJson → SandboxRuntimeConfig                         │ │
+│  │   network: allowedDomains / deniedDomains                   │ │
+│  │   filesystem: FsReadRestrictionConfig / FsWriteRestriction  │ │
+│  │   resolvePathPatternForSandbox(): // + / + ~/ prefix resolve│ │
+│  │   resolveSandboxFilesystemPath(): absolute path expansion   │ │
+│  └────────────────────────────┬───────────────────────────────┘ │
+│                               │                                   │
+│  Layer 3: 权限层 (Bash Permissions)                               │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ PermissionRuleValue: toolName + ruleContent matching        │ │
+│  │ Bash tool → sandbox-aware command filtering                 │ │
+│  │ WebFetch → domain allow/deny via network config             │ │
+│  │ SandboxPermissionRequest.tsx: host-level user approval UI   │ │
+│  └────────────────────────────┬───────────────────────────────┘ │
+│                               │                                   │
+│  Layer 4: 执行+清理层                                             │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ @anthropic-ai/sandbox-runtime: actual sandbox process       │ │
+│  │ SandboxViolationStore: violation tracking + logging         │ │
+│  │ SandboxDoctorSection: dependency check UI (/sandbox cmd)    │ │
+│  │ cleanup: rmSync shell transient dirs                        │ │
+│  └────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 1.3 Multi-Agent 三种模式
+
+Source: `tools/AgentTool/builtInAgents.ts`, `utils/teammate.ts`, `utils/swarm/`, `coordinator/coordinatorMode.ts`
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                  Multi-Agent 三种协作模式 (并存)                        │
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  Mode 1: Fork Subagent (父子上下文继承)                                │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │ forkSubagent.ts:210                                               │ │
+│  │   Parent → AgentTool without subagent_type → FORK_AGENT           │ │
+│  │   child inherits FULL parent conversation + system prompt         │ │
+│  │   byte-identical prefix → prompt cache sharing across siblings    │ │
+│  │   FORK_BOILERPLATE_TAG guard prevents recursive forking           │ │
+│  │   maxTurns: 200, model: 'inherit', permissionMode: 'bubble'      │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+│                                                                        │
+│  Mode 2: Coordinator → Workers (协调者-工作者)                         │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │ coordinatorMode.ts:369 - feature('COORDINATOR_MODE') gate         │ │
+│  │   workerAgent.ts (feature-gated, not in this build)               │ │
+│  │   isCoordinatorMode() checks CLAUDE_CODE_COORDINATOR_MODE env     │ │
+│  │   workers get ASYNC_AGENT_ALLOWED_TOOLS subset (constants/tools.ts)│ │
+│  │   INTERNAL_WORKER_TOOLS: team create/delete/sendMsg/synthetic     │ │
+│  │   matchSessionMode(): auto-restore coordinator state on resume    │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+│                                                                        │
+│  Mode 3: Swarm / Teammate (对等群体, 3 backends)                       │
+│  ┌──────────────────────────────────────────────────────────────────┐ │
+│  │ utils/swarm/constants.ts: tmux-session based team management      │ │
+│  │ utils/teammate.ts:292 - identity resolution (2 paths)             │ │
+│  │   Path A: AsyncLocalStorage (in-process teammates)                │ │
+│  │   Path B: dynamicTeamContext (tmux teammates via CLI args)         │ │
+│  │ Backends (utils/swarm/backends/):                                 │ │
+│  │   1. inProcessRunner.ts - same process, isolated context           │ │
+│  │   2. Tmux panes - separate tmux panes per teammate                 │ │
+│  │   3. External process - spawn via execPath or TEAMMATE_COMMAND     │ │
+│  │ Mailbox: utils/teammateMailbox.ts for inter-agent messaging       │ │
+│  │ Spawn: tools/shared/spawnMultiAgent.ts (1093 LoC)                 │ │
+│  └──────────────────────────────────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -156,70 +199,82 @@ Shell.ts / execute / cleanup          ← 执行层: 实际执行与清理
 
 ### 维度一: 通信与适配 (D1)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| 多入口架构 | CLI + REPL + SDK + MCP + Bridge + Remote 六种入口 | 覆盖交互式/脚本化/IDE集成/远程调用全场景 | 不是单一 CLI 工具，而是多形态 agent 平台 | analysis/cli.tsx, analysis/main.tsx, analysis/MCP/, analysis/Remote/ |
-| Ink/React TUI | `cli.tsx` 使用 React/Ink 组件渲染终端 UI | JSX 组件化的终端界面，现代化交互体验 | 与 hermes-agent 的 Ink TUI 同源技术栈 | analysis/cli.tsx |
-| Slash Command 系统 | `commands.ts` 统一命令注册 | 用户通过 `/` 命令控制 agent 行为 | 推断: 类似 hermes-agent 的 slash command 注册中心 | analysis/commands.ts |
-| MCP 完整集成 | `analysis/MCP/` 目录 | Agent 消费外部 MCP Server 工具，动态扩展能力 | 原生 MCP 支持，非第三方适配 | analysis/MCP/ |
-| Bridge 协议 | `analysis/Bridge/` 或相关文件 | agent-to-agent 通信桥梁 | 推断: 用于跨 agent 实例通信 | analysis/Bridge/ (推断) |
-| Remote 远程调用 | `analysis/Remote/` 目录 | 远程 agent 执行与结果回收 | 推断: 支持分布式 agent 部署 | analysis/Remote/ |
+| 多入口架构 | CLI/print/SDK/MCP-Server/Remote/Chrome-Native 六种入口 | 覆盖交互式/脚本化/IDE/远程/MCP 全场景 | 非单一 CLI，多形态 agent 平台 | `entrypoints/cli.tsx:33-302` |
+| Ink/React TUI | `entrypoints/cli.tsx` → React/Ink JSX 组件 + React Compiler (`react/compiler-runtime`) | JSX 组件化终端，30+ slash commands | 与 hermes-agent 同源技术栈，但已启用 React Compiler | `entrypoints/cli.tsx`, `commands/` (30+ .tsx files) |
+| Slash Command 系统 | `commands/` 目录 30+ 命令: model, session, plugin, skills, agents, review, chrome, mcp… | 用户通过 `/` 控制 agent 行为全生命周期 | 命令即 JSX 组件 (React/Ink rendering) | `commands/plugin/plugin.tsx`, `commands/agents/agents.tsx` |
+| MCP WebSocket Transport | `utils/mcpWebSocketTransport.ts:200` — Bun/Node dual runtime | 通过 WebSocket 双向 MCP 通信 | 双运行时适配 (Bun native vs ws package) | `utils/mcpWebSocketTransport.ts:22-70` |
+| Remote Sessions | `remote/SessionsWebSocket.ts` + `remote/RemoteSessionManager.ts` | 远程 session 管理，permission bridge | 推断: 支持分布式/远程 agent 部署 | `remote/RemoteSessionManager.ts` |
+| SDK 入口 | `entrypoints/agentSdkTypes.js` — typed SDK message protocol | 编程式调用，支持 SDK status/compat/encoding | 独立的 SDK 消息类型系统 | `QueryEngine.ts:9-16` (SDK message type imports) |
 
 ### 维度二: 执行深度 (D2)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| 文件操作 | read_file / write_file / patch / search_files / glob (5+ tools) | 完整的代码文件 CRUD 能力 | `patch` 支持字符串级精确替换 (推断 9 种模糊匹配策略) | analysis/Tool.ts, analysis/tools/ |
-| Shell 执行 | `bash` / `shell` tools, 通过 Shell.ts 管理 | 执行任意 shell 命令，支持超时/PID 控制 | 集成 sandbox 四层结构 | analysis/Shell.ts |
-| 流式工具执行 | `StreamingToolExecutor` | 工具执行实时流式输出，LLM 可见中间结果 | 非一次性返回 — 支持流式消费工具输出 | analysis/StreamingToolExecutor |
-| 并行工具调用 | `toolOrchestration` 模块 | 多工具并行执行再聚合 | 推断: 类似 hermes-agent 的 execute_code 脚本模式 | analysis/toolOrchestration |
-| 查询引擎 | `QueryEngine.ts` — 核心 agent 循环 | while loop: LLM Request → Tool Call → Result → Iterate | 推断: 类似 hermes-agent 的 run_conversation() | analysis/query.ts, analysis/QueryEngine.ts |
-| 代码编辑 | edit / replace / apply_patch tools | 手术级代码修改 (surgical edits) | 与 DeepAgents 的 `edit_file` 同类 | analysis/tools/ (推断) |
+| 40+ Built-in Tools | `tools.ts:1-389` — Bash, Read, Write, Edit, Grep, Glob, Agent, Skill, MCP, WebFetch, WebSearch, Task*, TodoWrite, PlanMode, Worktree, LSP, Config, REPL, Cron… | 完整代码工作流工具链 | 工具数量远超一般 CLI agent | `tools.ts:3-97` (tool imports), `constants/tools.ts:1-112` |
+| streaming query loop | `query.ts` async generator yielding StreamEvent/RequestStartEvent/Message | LLM stream → yield → tool execution → yield → continue | async generator 模式支持优雅中断和恢复 | `query.ts:219-251` |
+| StreamingToolExecutor | `services/tools/StreamingToolExecutor.ts` | 工具执行实时流式输出，不等工具完成即可推理下一步 | 在已知分析产品中未见同类机制 | `query.ts:96`, `services/tools/StreamingToolExecutor.ts` |
+| 并行工具调用 | `services/tools/toolOrchestration.ts` — runTools() | 多工具并行执行再聚合结果 | `query.ts:98` 调用 runTools | `services/tools/toolOrchestration.ts` |
+| QueryEngine 类封装 | `QueryEngine.ts:1295` — stateful conversation manager | submitMessage() per turn, 持久化 messages/fileState/usage | class-based state management across turns | `QueryEngine.ts:184-200` |
+| 代码编辑 | FileEditTool + FileWriteTool + NotebookEditTool + Patch 策略 | 手术级代码修改 (surgical edits) | FileEditTool 支持字符串级精确替换 | `tools/FileEditTool/constants.js`, `tools/FileWriteTool/prompt.js` |
+| Task system | TaskCreate/Get/Update/List/Output/Stop + TaskStateBase | 结构化任务生命周期管理 | 完整的 task 状态机 | `tools/TaskCreateTool/`, `Task.js` |
+| LSP integration | `tools/LSPTool/LSPTool.js` | 语言服务器协议集成，智能代码分析与补全 | LSP 原生工具化 | `tools/LSPTool/LSPTool.js` |
 
 ### 维度三: 任务编排 (D3)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| SubAgent 委派 | `task` tool — 派生隔离上下文的子 agent | 主 agent 委派复杂子任务给独立 agent | 上下文隔离，独立 tool set | analysis/SubAgent/ (推断) |
-| Coordinator → Workers | 协调者-工作者模式 | 一个 coordinator 分配任务给多个 worker | 推断: 用于并行代码分析/测试 | analysis/Swarm/ 或相关 |
-| Swarm Teammates | 群体协作模式 | 多个对等 agent 协作完成任务 | 与 coordinator 模式互补: 扁平化 vs 层级化 | analysis/Swarm/ |
-| 三套多 Agent 共存 | SubAgent / Coordinator→Workers / Swarm 并行存在 | 同一平台支持三种协作拓扑 | 已分析产品中未见同时支持三种模式 | 社区分析 README |
-| 上下文压缩 | `compact/` 模块 | Token 超限时自动压缩历史消息 | 推断: 类似 hermes 的 trajectory_compressor | analysis/compact/ |
-| 任务追踪 | 推断: 内置 todo/write_todos 机制 | Agent 结构化追踪子任务进度 | 推断: 类似 DeepAgents 的 TodoListMiddleware | 推断 (基于同类产品模式) |
+| 6 个 Built-in Agents | GENERAL_PURPOSE, PLAN, EXPLORE, VERIFICATION, CLAUDE_CODE_GUIDE, STATUSLINE_SETUP | 各有独立 system prompt, tool set, model 配置 | 内置 agent 角色专业化 | `tools/AgentTool/builtInAgents.ts:22-72` |
+| GENERAL_PURPOSE_AGENT | tools: ['*'], shared prefix + guidelines | 默认全能力子 agent，用于复杂搜索/多步任务 | explicit guidelines: "NEVER create docs", "prefer editing" | `tools/AgentTool/built-in/generalPurposeAgent.ts:25-34` |
+| PLAN_AGENT | 只读, 禁止文件写/编辑/Agent, omitClaudeMd: true, model: 'inherit' | 软件架构师，输出分步实现计划 + 关键文件列表 | "READ-ONLY MODE" 严格声明，disallowedTools explicit | `tools/AgentTool/built-in/planAgent.ts:73-92` |
+| EXPLORE_AGENT | 只读, ant→inherit, external→haiku, omitClaudeMd: true | 快速代码搜索 agent, 三种 thoroughness level | 外部用 haiku 降本, 内部用同模型 | `tools/AgentTool/built-in/exploreAgent.ts:64-83` |
+| VERIFICATION_AGENT | 只读 + 临时写 /tmp, 试图破坏而非确认 | 对抗性验证, 5 种检查策略, 必须实际运行命令 | "not confirm it works — try to break it" | `tools/AgentTool/built-in/verificationAgent.ts:10-152` |
+| Fork Subagent | `forkSubagent.ts:210` — feature('FORK_SUBAGENT'), maxTurns:200 | 父子上下文继承, prompt cache sharing | byte-identical prefix for cache optimization | `tools/AgentTool/forkSubagent.ts:60-71, 107-169` |
+| Coordinator Mode | `coordinator/coordinatorMode.ts:369` — feature('COORDINATOR_MODE') gate | 协调者-工作者模式, session mode auto-sync | 动态 require workerAgent module (dead code elimination) | `coordinator/coordinatorMode.ts:36-41` |
+| TodoWrite tool | `tools/TodoWriteTool/` — structured task tracking | Agent 结构化追踪子任务进度 | `tools.ts:56` explicitly imported | `tools/TodoWriteTool/` |
+| AutoCompact | `services/compact/autoCompact.ts` | Token 超限时自动压缩历史消息 | 与 reactiveCompact/snipCompact/collapse 并列 4 种 compaction | `services/compact/` (11 files) |
 
 ### 维度四: 安全隔离 (D4)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| Sandbox 四层结构 | shouldUseSandbox → convertToConfig → bashPermissions → Shell.ts/cleanup | 分层决策-配置-权限-执行沙箱 | 四层递进设计，每层职责清晰 | 社区分析 README |
-| Bash 权限细粒度 | `bashPermissions` 模块 | 细粒度控制哪些命令可在沙箱中执行 | 推断: 支持 allowlist/denylist | analysis/bashPermissions/ (推断) |
-| Perm 权限层 | `Perm/` 目录 | 独立权限管理系统 | 推断: 工具级/操作级权限控制 | analysis/Perm/ |
-| Sandbox 生命周期 | `cleanup` 阶段 | 沙箱执行完毕自动清理资源 | 推断: 容器/进程级清理 | analysis/Shell.ts cleanup |
-| 命令审批 | 推断: 基于 Perm 层 | 危险命令需人工审批 | 推断: 类似 hermes-agent 的 approvals.mode | 推断 |
-| 环境隔离 | `convertToConfig` + `shouldUseSandbox` | 代码执行与宿主环境隔离 | 推断: 可能支持容器化 (Docker) 隔离 | 推断 |
+| Sandbox 四层结构 | shouldUseSandbox → convertToSandboxRuntimeConfig → PermissionRule → execute+cleanup | 决策-配置-权限-执行解耦 | 985 行 adapter, 每层独立可替换 | `utils/sandbox/sandbox-adapter.ts:172-985` |
+| @anthropic-ai/sandbox-runtime | 外部专业沙箱运行时封装 | 进程级隔离执行 | 自有自研沙箱 runtime, 非复用 Docker/npm | `utils/sandbox/sandbox-adapter.ts:7-22` |
+| SandboxViolationStore | 从 sandbox-runtime 引入 | 违规事件追踪与存储 | 违规可审计 | `utils/sandbox/sandbox-adapter.ts:21` |
+| Permission 三层 (allow/deny/ask) | `Tool.ts:123-138` — alwaysAllowRules/alwaysDenyRules/alwaysAskRules | 细粒度工具级权限 | 权限按 source (user/project/local/managed) 分层 | `Tool.ts:123-138` |
+| PermissionMode | 'default' / 'acceptEdits' / 'bypassPermissions' / 'plan' 等 | 不同安全级别对应不同审批策略 | plan mode 可降权 | `Tool.ts:123-124` |
+| File system restrictions | `sandbox-adapter.ts` — FsReadRestrictionConfig + FsWriteRestrictionConfig | 只读/只写路径精确控制 | 支持 // 前缀 (绝对) 和 / 前缀 (settings-relative) | `sandbox-adapter.ts:99-146` |
+| Policy settings | 'policySettings' source — allowManagedDomainsOnly / allowManagedReadPathsOnly | 企业级不可覆盖策略 | 管理源最高优先级 | `sandbox-adapter.ts:152-164` |
+| Denial tracking | `utils/permissions/denialTracking.js` | 拒绝记录与统计 | 安全审计支持 | `Tool.ts:60` (DenialTrackingState import) |
 
 ### 维度五: 记忆系统 (D5)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| 分层记忆 | sessionStorage / memdir / SessionMemory 三层 | 从短期到长期的分层记忆架构 | 三层递进: 临时 → 会话 → 持久 | analysis/sessionStorage, analysis/memdir |
-| SessionStorage | 会话级临时存储 | 单次对话内的状态保持 | 推断: 可能基于内存或临时文件 | analysis/sessionStorage/ |
-| MemDir 持久化 | `memdir/` 目录 | 跨 session 的持久化记忆 | 推断: 类似 hermes 的 AGENTS.md/SOUL.md 文件注入 | analysis/memdir/ |
-| SessionMemory | 会话记忆对象 | 结构化记忆表示 | 推断: 可能支持 key-value 或向量检索 | analysis/SessionMemory/ (推断) |
-| Hooks 机制 | `hooks/` 目录 | 事件驱动的记忆触发 (pre/post tool execution) | 推断: 类似 lifecycle hooks，可注入记忆保存逻辑 | analysis/hooks/ |
-| 上下文压缩 | `compact/` 模块 | Token 超限时自动压缩历史，保留关键信息 | 压缩后写入持久化存储 | analysis/compact/ |
+| 5 层 Memory 类型 | User / Project / Local / Managed / AutoMem + TeamMem (feature gate) | 从个人到团队的分层记忆 | 类型化 memory, 不同生命周期 | `utils/memory/types.ts:3-10` |
+| MEMORY.md Entrypoint | `memdir/memdir.ts:34-103` — MAX_ENTRYPOINT_LINES=200, MAX_ENTRYPOINT_BYTES=25_000 | 结构化索引文件，支持 topic 链接 | 双层 cap (line+byte) 防止超大索引 | `memdir/memdir.ts:38, 57-103` |
+| loadMemoryPrompt | `memdir/memdir.ts` export, 从文件系统加载 memory | MEMORY.md 索引注入 system prompt | 文件系统级持久化, 版本可控 | `memdir/memdir.ts` |
+| SessionStorage | `utils/sessionStorage.ts:5105` — JSONL transcript logging | 会话级完整记录，支持 replay/resume | 5105 行复杂存储层, 包含 compaction/session 切换 | `utils/sessionStorage.ts` |
+| Auto Memory (AutoMem) | `memdir/paths.js` — getAutoMemPath + isAutoMemoryEnabled | Agent 自动创建和维护 memory | 自动化记忆管理，区别于手动 MEMORY.md | `memdir/paths.js` |
+| Team Memory (TEAMMEM) | `services/teamMemorySync/` — feature-gated team memory sync | 团队共享记忆，含 secret scanner | secretScanner 防止 secrets 写入共享 memory | `services/teamMemorySync/secretScanner.ts` |
+| Content Replacement | `utils/toolResultStorage.ts` — ContentReplacementState | 工具输出替换为引用, 减少 token 消耗 | 记录 → sessionStorage → contentReplacement 回放 | `query.ts:99`, `utils/sessionStorage.ts:46` |
+| Snip Compact | `services/compact/snipCompact.js` — feature('HISTORY_SNIP') | 对话历史裁剪, SDK 专用 | SDK 无 UI scrollback, 需强力压缩 | `QueryEngine.ts:169-173` |
 
 ### 维度六: 扩展生态 (D6)
 
-| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 资料来源 |
+| 原子功能 | 技术实现方案 | 具体效果 | 独特性/发现 | 源码出处 |
 |----------|-------------|---------|------------|---------|
-| MCP 协议 | `analysis/MCP/` — 完整 MCP 客户端实现 | 动态发现和调用外部 MCP Server 工具 | 原生 MCP 集成，非第三方适配层 | analysis/MCP/ |
-| Plugin 插件系统 | `analysis/Plugin/` 目录 | 可插拔的功能扩展 | 推断: 支持自定义插件注册 | analysis/Plugin/ |
-| Skills 扩展 | `analysis/Skills/` 或相关 | 渐进式信息披露的 skill 加载 | 推断: 遵循 Anthropic Agent Skills 规范 | analysis/Skills/ (推断) |
-| Remote 远程代理 | `analysis/Remote/` | 远程 agent 部署和调用 | 推断: 支持远程执行和结果回收 | analysis/Remote/ |
-| Bridge 桥接 | `analysis/Bridge/` 或相关 | 跨 agent 实例桥接 | 推断: agent-to-agent 通信协议 | analysis/Bridge/ (推断) |
-| SDK 入口 | SDK 模式入口 | 编程式调用 Claude Code 能力 | 推断: 类似 DeepAgents 的 Python SDK | analysis/SDK/ (推断) |
-| Swarm 集群 | `analysis/Swarm/` | 多 agent 集群协作 | 推断: 分布式 agent 网络 | analysis/Swarm/ |
+| MCP 深度集成 | `tools/MCPTool/MCPTool.ts` — lazySchema, isOpenWorld=false, maxResult=100K | 外部 MCP Server 工具动态注入 agent tool pool | MCP tool 表现为原生 tool, 统一权限/渲染 | `tools/MCPTool/MCPTool.ts:27-77` |
+| MCP Connection Manager | `services/mcp/MCPConnectionManager.tsx` | MCP 服务器连接生命周期管理 | React 组件化 MCP 管理 | `services/mcp/MCPConnectionManager.tsx` |
+| MCP WebSocket Transport | `utils/mcpWebSocketTransport.ts:200` | WebSocket 双向 MCP 传输 | JSONRPCMessageSchema 验证 | `utils/mcpWebSocketTransport.ts:82` |
+| Plugin 系统 | `utils/plugins/pluginLoader.js` + `commands/plugin/` (10+ .tsx files) | 可插拔功能扩展 + Marketplace + Trust | 完整 Plugin 生态: 安装/信任/验证/管理 | `commands/plugin/plugin.tsx`, `commands/plugin/BrowseMarketplace.tsx` |
+| Skills 系统 | `skills/loadSkillsDir.js` — clearSkillCaches + onDynamicSkillsLoaded | 渐进式信息披露的 skill 加载 | 支持 dynamic skills (运行时加载) | `skills/loadSkillsDir.js` |
+| Skill 变更检测 | `utils/skills/skillChangeDetector.ts:311` — chokidar file watcher | 文件变更 1000ms 稳定阈值后自动 reload | 含 Bun 死锁 workaround (usePolling) | `utils/skills/skillChangeDetector.ts:27-62` |
+| Hooks 生命周期 | `utils/hooks.js` + `hooks/postSamplingHooks.js` + `hooks/useCanUseTool.js` | pre/post tool execution hooks | pre-compact/post-compact/session_start 全生命周期 | `services/compact/compact.ts:55-56` |
+| Remote 远程 | `remote/RemoteSessionManager.ts` + `remote/remotePermissionBridge.ts` | 远程 agent 会话管理 | remote env var (CLAUDE_CODE_REMOTE) 控制 | `entrypoints/cli.tsx:9` |
+| Worktree 隔离 | `tools/EnterWorktreeTool/` + `tools/ExitWorktreeTool/` | git worktree 级别的代码隔离 | 利用 git worktree 实现多分支并行工作 | `tools/EnterWorktreeTool/`, `tools/ExitWorktreeTool/` |
+| Task System | `utils/task/framework.js` + 5 Task* Tools | 异步后台任务创建/管理/追踪 | registerTask, task disk output | `utils/task/framework.js`, `tools/TaskCreateTool/` |
 
 ---
 
@@ -227,113 +282,131 @@ Shell.ts / execute / cleanup          ← 执行层: 实际执行与清理
 
 ### 3.1 正常路径: CLI 对话 → 多轮工具调用
 
-基于架构图 + 社区分析 README 还原：
+基于源码链路还原：
 
 ```
 User types: "Refactor the auth module to use JWT instead of sessions"
   │
-  ├─ Step 1: cli.tsx 接收用户输入 → launchRepl
-  │    └─ React/Ink 组件渲染输入界面
+  ├─ Step 1: entrypoints/cli.tsx:33 main()
+  │    ├─ parse args, fast-paths checked (--version, --dump-system-prompt)
+  │    └─ dynamic import init.ts → config load → launchRepl
   │
-  ├─ Step 2: QueryEngine.process(message)
+  ├─ Step 2: QueryEngine.submitMessage(message)    [QueryEngine.ts:184]
+  │    ├─ processUserInput() → command resolution    [utils/processUserInput/]
   │    ├─ Context assembly:
-  │    │    ├─ System prompt: 从配置/memory 加载
-  │    │    ├─ Tools: Tool.ts 注册的所有工具
-  │    │    ├─ Memory: SessionMemory + memdir 加载上下文
-  │    │    ├─ Skills: 匹配的 skills 注入 name+description
-  │    │    └─ MCP tools: 从连接的外部 MCP server 动态发现
+  │    │    ├─ loadMemoryPrompt() + getAutoMemPath() → MEMORY.md injection
+  │    │    ├─ fetchSystemPromptParts() → CLAUDE.md, system prompt [QueryEngine.ts:72]
+  │    │    ├─ agentDefinitions → 6 built-in agents injected [QueryEngine.ts:135]
+  │    │    ├─ mcpClients → MCP tools discovered (懒加载 schema)
+  │    │    ├─ skills → matched skills injection (name + description only)
+  │    │    └─ plugins → plugin-loaded tools via loadAllPluginsCacheOnly()
   │    │
-  │    ├─ Compact check: 如果 token 超限 → compact/ 压缩
-  │    │
-  │    └─ LLM Request → 返回 tool_calls
+  │    └─ Compact check: autoCompact tracking → if needed → compact() [services/compact/autoCompact.ts]
   │
-  ├─ Step 3: Tool Orchestration
-  │    ├─ toolOrchestration 调度多个 tool calls
-  │    │    ├─ search_files("auth") → 找到 auth 模块文件
-  │    │    ├─ read_file("src/auth/index.ts") → 读取核心文件
-  │    │    ├─ read_file("src/auth/session.ts") → 读取 session 实现
-  │    │    └─ glob("src/auth/**/*.ts") → 发现所有相关文件
+  ├─ Step 3: query() async generator loop    [query.ts:219]
+  │    ├─ buildQueryConfig() → createDumpPromptsFetch()    [query/config.js]
   │    │
-  │    ├─ StreamingToolExecutor: 逐个流式返回结果
+  │    ├─ LLM Request: queryModelWithStreaming()    [services/api/claude.ts]
+  │    │    ├─ Anthropic API call with streaming
+  │    │    ├─ yield each stream event (thinking, text, tool_use)
+  │    │    └─ doesMostRecentAssistantMessageExceed200k() check [utils/tokens.ts:85]
   │    │
-  │    └─ Results → messages.append
+  │    ├─ Tool dispatch: runTools()    [services/tools/toolOrchestration.ts]
+  │    │    ├─ findToolByName() → match from tools.ts registry [Tool.ts]
+  │    │    ├─ checkPermissions() → permission mode resolution
+  │    │    ├─ StreamingToolExecutor → real-time output streaming
+  │    │    └─ mapToolResultToToolResultBlockParam() → normalized result
+  │    │
+  │    └─ Continue → next iteration or Terminal → stop    [query/transitions.js]
   │
-  ├─ Step 4: LLM 推理 → 生成代码变更
-  │    ├─ write_file("src/auth/jwt.ts") → 创建 JWT 实现
-  │    ├─ patch("src/auth/index.ts", diff) → 替换入口
-  │    └─ bash("npm run test -- --auth") → 运行测试验证
-  │         └─ Shell.ts → shouldUseSandbox? → 沙箱执行
+  ├─ Step 4: Multi-turn execution
+  │    ├─ Turn 1: search_files("auth"), read_file("src/auth/index.ts")
+  │    ├─ Turn 2: glob("src/auth/**/*.ts"), read_file("src/auth/session.ts")
+  │    ├─ Turn 3: FileWriteTool("src/auth/jwt.ts"), FileEditTool("src/auth/index.ts")
+  │    └─ Turn 4: BashTool("npm run test -- --auth") → sandbox if needed
   │
   └─ Step 5: Post-processing
-       ├─ compact/: 压缩上下文 (如需要)
-       ├─ SessionMemory: 保存关键信息
-       └─ hooks/: 触发 post-execution hooks
+       ├─ compact() if token budget exceeded [services/compact/compact.ts]
+       ├─ SessionStorage.flush() → JSONL transcript [utils/sessionStorage.ts]
+       ├─ postSamplingHooks → execute [hooks/postSamplingHooks.js]
+       └─ ContentReplacement → tool output replaced with refs [utils/toolResultStorage.ts]
 ```
 
 ### 3.2 异常路径: Sandbox 隔离执行
 
-基于 Sandbox 四层结构还原：
-
 ```
 Agent 决定执行用户提供的脚本
   │
-  ├─ Step 1: shouldUseSandbox()
-  │    ├─ 检查: 是否是用户代码？是否涉及网络/文件系统？
-  │    └─ 决策: yes → 启用沙箱
+  ├─ Step 1: Decision Layer    [sandbox-adapter.ts]
+  │    ├─ SandboxManager.isSupportedPlatform()    [line 985]
+  │    └─ SandboxManager.isSandboxEnabledInSettings()
   │
-  ├─ Step 2: convertToConfig()
-  │    ├─ 生成沙箱配置: 容器类型/资源限制/网络策略
-  │    └─ 配置: 只读 /src, 可写 /tmp, 无网络
+  ├─ Step 2: Configuration Layer    [sandbox-adapter.ts:172]
+  │    ├─ convertToSandboxRuntimeConfig(settings)
+  │    │    ├─ WebFetch domain extraction → allowedDomains/deniedDomains
+  │    │    ├─ managedDomainsOnly check → policy override
+  │    │    └─ resolvePathPatternForSandbox() → // → /, / → settings-relative
+  │    │
+  │    └─ SandboxRuntimeConfig: filesystem restrictions + network policy
   │
-  ├─ Step 3: bashPermissions 验证
-  │    ├─ 检查命令: "node /tmp/user_script.js" ✓
-  │    ├─ 拒绝命令: "curl evil.com" ✗ (网络被禁)
-  │    └─ 拒绝命令: "rm -rf /src" ✗ (只读文件系统)
+  ├─ Step 3: Permission Layer
+  │    ├─ PermissionRule matching: toolName + ruleContent
+  │    ├─ Bash command → allowlist check
+  │    ├─ WebFetch → domain allow/deny via network config
+  │    └─ SandboxPermissionRequest.tsx: host-level user approval UI
   │
-  └─ Step 4: Shell.ts 执行 + cleanup
-       ├─ 在沙箱中执行
-       ├─ 超时: 120s 硬限制
-       ├─ 结果: stdout/stderr 返回
-       └─ cleanup: 销毁容器/清理临时文件
+  └─ Step 4: Execution + Cleanup Layer
+       ├─ @anthropic-ai/sandbox-runtime executes in isolated process
+       ├─ SandboxViolationStore logs any violations
+       ├─ Timeout: implicit (via sandbox-runtime)
+       └─ cleanup: rmSync transient dirs [sandbox-adapter.ts:23]
 ```
 
-### 3.3 Multi-Agent 协作路径
+### 3.3 Multi-Agent 协作: Fork Subagent 路径
 
 ```
-User: "Audit the entire codebase for security vulnerabilities"
+Agent call with no subagent_type specified
   │
-  ├─ Coordinator Agent 收到任务
-  │    │
-  │    ├─ 分解任务: 按模块拆分 → 5 个子审计任务
-  │    │
-  │    ├─ Spawn Workers (Coordinator → Workers 模式):
-  │    │    ├─ Worker 1: audit("src/auth/")
-  │    │    │    └─ SubAgent: 独立上下文 + 只读工具集
-  │    │    ├─ Worker 2: audit("src/api/")
-  │    │    ├─ Worker 3: audit("src/db/")
-  │    │    ├─ Worker 4: audit("src/frontend/")
-  │    │    └─ Worker 5: audit("src/config/")
-  │    │
-  │    ├─ 并行执行 (toolOrchestration 支持)
-  │    │
-  │    └─ 结果聚合 → 综合审计报告
+  ├─ Step 1: isForkSubagentEnabled()    [forkSubagent.ts:32]
+  │    ├─ feature('FORK_SUBAGENT') gate
+  │    ├─ Not isCoordinatorMode() (mutually exclusive)
+  │    └─ Not nonInteractiveSession
   │
-  └─ 或使用 Swarm 模式:
-       ├─ 5 个对等 agent 协作
-       ├─ 共享发现 + 交叉验证
-       └─ 共识审计报告
+  ├─ Step 2: isInForkChild() guard    [forkSubagent.ts:78]
+  │    ├─ Scan messages for FORK_BOILERPLATE_TAG
+  │    └─ Prevent recursive forking
+  │
+  ├─ Step 3: buildForkedMessages()    [forkSubagent.ts:107]
+  │    ├─ Clone parent assistant message (all tool_use blocks)
+  │    ├─ Build placeholder tool_results (identical for cache sharing)
+  │    └─ Append per-child directive (FORK_DIRECTIVE_PREFIX)
+  │
+  ├─ Step 4: execute async fork with FORK_AGENT definition    [forkSubagent.ts:60]
+  │    ├─ tools: ['*'] (exact parent tool pool)
+  │    ├─ maxTurns: 200
+  │    ├─ model: 'inherit'
+  │    └─ permissionMode: 'bubble' → prompts surface to parent terminal
+  │
+  └─ Step 5: Child agent executes → scoped result → parent continues
 ```
 
-### 3.4 资源表现推断 (基于架构反推)
+### 3.4 资源表现 (源码直接提取)
 
-| 参数 | 推断默认值 | 来源/依据 |
-|------|-----------|----------|
-| 最大对话轮次 | ~100 (推断) | 同类产品 (hermes: 90, deepagents: 9999 recursion) |
-| Shell 超时 | ~120s (推断) | 同类产品通用设置 |
-| 子Agent 超时 | ~600s (推断) | 类似 hermes delegation.child_timeout_seconds |
-| 压缩触发阈值 | ~85% 上下文窗口 (推断) | 同类产品 (DeepAgents: 0.85 fraction) |
-| 并行工具上限 | ~5 (推断) | toolOrchestration 设计推断 |
-| Sandbox 清理 | 执行后立即 (推断) | 四层结构 cleanup 阶段 |
+| 参数 | 精确值 | 源码出处 |
+|------|--------|---------|
+| FORK_AGENT maxTurns | 200 | `forkSubagent.ts:65` |
+| MEMORY.md max lines | 200 | `memdir/memdir.ts:35` |
+| MEMORY.md max bytes | 25,000 | `memdir/memdir.ts:38` |
+| MCPTool maxResultSizeChars | 100,000 | `tools/MCPTool/MCPTool.ts:35` |
+| Skill change stability threshold | 1000ms | `utils/skills/skillChangeDetector.ts:27` |
+| Skill reload debounce | 300ms | `utils/skills/skillChangeDetector.ts:42` |
+| Skill polling interval (Bun) | 2000ms | `utils/skills/skillChangeDetector.ts:49` |
+| Compact post-compact token budget | 50,000 | `services/compact/compact.ts:123` |
+| Compact post-compact max files | 5 | `services/compact/compact.ts:122` |
+| Compact post-compact skills budget | 25,000 | `services/compact/compact.ts:130` |
+| MAX_OUTPUT_TOKENS recovery limit | 3 attempts | `query.ts:164` |
+| maxOutputTokensRecovery | 3 | `query.ts:164` |
+| Iterator yield types | StreamEvent / RequestStartEvent / Message / TombstoneMessage / ToolUseSummaryMessage | `query.ts:222-228` |
 
 ---
 
@@ -343,35 +416,38 @@ User: "Audit the entire codebase for security vulnerabilities"
 
 | 缺失/风险项 | 检测来源 | 影响等级 | 详情 |
 |--------|---------|---------|------|
-| 闭源风险 — 非官方开源 | 事实 | **致命** | 所有分析基于 npm source map 泄露，非官方开源。Anthropic 可能随时修改/关闭/收费。无开源社区贡献路径，无 fork 自由 |
-| 无公开 Benchmark | 社区分析 README | 高 | 无 SWE-bench / GAIA / HumanEval 等公开评测得分。能力声明完全依赖 Anthropic 官方营销 |
-| 依赖 Anthropic API | 源码分析 (单模型) | 高 | 深度绑定 Anthropic Claude 模型。不支持 OpenAI/Llama/其他 provider 切换。api 中断 = 完全不可用 |
-| 源码分析覆盖度有限 | 方法论限制 | 中 | 社区分析基于 source map 泄露的 TypeScript 源码 (1902 文件, 513k 行)，但分析仓库 (liuup/claude-code-analysis) 的 analysis/ 目录未必覆盖全部模块 |
-| 无多模型 Transport | 源码分析 (单 provider) | 中 | 与 hermes-agent 的 4 种 Transport Adapter 形成对比 — Claude Code 仅支持 Anthropic API |
-| 无法确定多租户能力 | 源码覆盖度不足 | 中 | 社区分析未涉及多租户/多用户隔离相关模块 |
-| 安装路径受限 | 产品事实 | 低 | 通过 npm 安装, 需要 Node.js 环境。无 pip/brew/curl 一键安装 |
+| 闭源风险 — 非官方开源 | 事实 | **致命** | 基于 npm source map 泄露逆向。Anthropic 随时可能修改/关闭/收费。无开源社区贡献路径 |
+| 无公开 Benchmark | 源码无评测框架 | 高 | 源码中未见 SWE-bench/GAIA/HumanEval 评测集成 |
+| 依赖 Anthropic API | `services/api/claude.ts` 单向调用 | 高 | 深度绑定 Claude 模型。无 OpenAI/Llama/其他 provider 切换 |
+| 单模型 architecture | `utils/model/model.js` — getMainLoopModel() 仅返回 Claude variants | 高 | Coordinator 模式可能用不同 worker 模型，但同 ecosystem |
+| 无 Gateway 多平台 | 源码中无消息平台集成 | 中 | 纯 CLI/SDK/Remote, 无 Discord/Slack/Telegram 等集成 |
+| Browser automation | 仅通过 MCP (claude-in-chrome MCP server) | 中 | 无原生 browser tools, 依赖外部 MCP server |
+| workerAgent 未在源码中 | feature-gated + dead code elimination | 低 | workerAgent.ts 通过动态 require, 不在当前 build 中 |
+| 无多租户隔离 | 源码中未见 tenant/user 隔离 | 低 | session-level 隔离存在, 但无 server 多租户 |
 
 ### 4.1.1 补充核查：与已知开源产品的 Gap 对比
 
-| 能力维度 | Claude Code (泄露分析) | Hermes Agent (开源) | DeepAgents (开源) | Gap 判定 |
-|---------|----------------------|-------------------|-----------------|---------|
-| 多 Provider 支持 | ❌ 仅 Anthropic | ✅ 200+ 模型 (OpenRouter) | ✅ 20+ providers | Claude Code 锁定单生态 |
+| 能力维度 | Claude Code (源码) | Hermes Agent | DeepAgents | Gap 判定 |
+|---------|-------------------|-------------|------------|---------|
+| 多 Provider 支持 | ❌ 单 Anthropic API | ✅ 200+ via OpenRouter | ✅ 20+ providers | Claude Code 锁定单生态 |
 | 开源许可 | ❌ 闭源 | ✅ MIT | ✅ MIT | Claude Code 不可自托管 |
 | Gateway 多平台 | ❌ 无 | ✅ 18+ 消息平台 | ❌ 无 | — |
-| Skills 自我创建 | ❓ 未知 | ✅ 自动从经验创建 | ❌ 手动声明 | — |
-| Sandbox 后端 | ✅ 四层结构 | ✅ 6 种 Backend | ✅ 5 种 Provider | 三者均强 |
-| MCP 集成 | ✅ 原生 | ✅ 双向 MCP | ✅ MCP Client | Claude Code 可能是最深度集成 |
-| Multi-Agent | ✅ 三套模式 | ✅ subagent + kanban | ✅ 三形态 subagent | Claude Code 可能最复杂 |
-| 公开 Benchmark | ❌ 无 | ✅ batch_runner + mini_swe_runner | ✅ 108 evals × 7 类别 | DeepAgents 评测最成熟 |
-| Browser 自动化 | ❓ 未知 | ✅ 12 browser tools | ❌ 无 | — |
+| Skills 自我创建 | ❓ 有 AutoMem 但未确认 self-create | ✅ 自动从经验创建 | ❌ 手动声明 | — |
+| Sandbox 后端 | ✅ `@anthropic-ai/sandbox-runtime` | ✅ 6 Backend | ✅ 5 Provider | 三者均强 |
+| MCP 集成 | ✅ 深度集成 (原生 tool wrapper) | ✅ 双向 MCP | ✅ MCP Client | Claude Code MCP 作为顶层 tool |
+| Multi-Agent | ✅ 6 built-in + fork + coordinator + swarm | ✅ subagent + kanban | ✅ 3 形态 subagent | Claude Code 最复杂 |
+| 公开 Benchmark | ❌ 无 | ✅ batch_runner + mini_swe | ✅ 108 evals × 7 cats | DeepAgents 评测最成熟 |
+| Browser 自动化 | ⚠️ 仅 via MCP server | ✅ 12 browser tools | ❌ 无 | — |
+| Plugin Marketplace | ✅ commands/plugin/ | ❌ 无 | ❌ 无 | Claude Code 独有 |
+| 分析系统强度 | ✅ GrowthBook (100+ gates) + Statsig + Datadog | ❌ 无 | ❌ 无 | Claude Code 数据驱动 feature rollout |
 
-### 4.2 基于架构反推的潜在问题
+### 4.2 基于源码的潜在问题
 
-- **单点故障**: 依赖 Anthropic API — 任何 API 中断/限流/定价变更直接影响所有用户
-- **Vendor Lock-in**: 深度绑定 Claude 模型的 prompt engineering/tool descriptions 可能无法迁移到其他模型
-- **审计不透明**: 闭源意味着无法独立审计安全性和隐私合规性
-- **社区贡献为零**: 无开源社区反馈循环，bug 修复和功能迭代完全由 Anthropic 内部控制
-- **Swarm/Bridge/Remote 未验证**: 三套 multi-agent 模式在社区分析中是目录级发现，具体实现细节和可靠性未被充分分析
+- **Feature Gate 泛滥**: GrowthBook 100+ 实验开关, 代码中大量 `feature('X') ? require() : null` 模式, 增加测试矩阵和分支复杂度
+- **Bun 特定风险**: 多处 Bun workaround (`typeof Bun !== 'undefined'`, USE_POLLING due to Bun deadlock), 降低跨运行时兼容性
+- **React Compiler 引入**: 所有 .tsx 组件使用 `react/compiler-runtime`, 增加构建复杂度
+- **Dead Code Elimination 过度**: `feature()` + conditional `require()` 模式导致某些代码路径在特定 build 中完全不可见 (如 workerAgent.ts)
+- **I/O 耦合深**: sessionStorage 直接操作 JSONL 文件系统 (5105 行), sandbox 直接调用 rmSync, 测试困难
 
 ---
 
@@ -379,57 +455,72 @@ User: "Audit the entire codebase for security vulnerabilities"
 
 ### 5.1 Agent vs Agent 平台判定
 
-| 判定标准 | Claude Code 现状 | 判定 |
+| 判定标准 | Claude Code 源码现状 | 判定 |
 |---------|-----------------|------|
-| **模板化** | ❓ 未知。Skills 可能支持 Markdown 声明。但 Agent 本身的配置方式不透明 (闭源限制) | 无法判定 |
-| **隔离化** | ✅ 达成。Sandbox 四层结构提供强隔离；SubAgent 提供上下文隔离；Perm 层提供权限隔离 | 达成 |
+| **模板化** | AgentDefinition type 支持 tools/model/permissionMode/disallowedTools/omitClaudeMd/source/baseDir。CustomAgentDefinition 继承。Skills 支持 Markdown 声明。但 Agent 实例创建路径未完全可见 (闭源限制) | ✅ 部分达成 |
+| **隔离化** | ✅ Sandbox 四层结构 (`@anthropic-ai/sandbox-runtime`); SubAgent 隔离上下文; Fork subagent 继承+隔离; Coordinator workers 独立 tool set; Worktree 文件系统隔离; PermissionMode per-agent | ✅ 完全达成 |
 
-> **结论**: 基于泄露源码分析，Claude Code 在**隔离化**维度达到 Agent 平台标准 (Sandbox + SubAgent + Perm)，但在**模板化**维度因闭源限制无法完整评估。从架构复杂度 (1902 文件) 和多入口设计判断，Claude Code 更接近一个**闭源 Agent 平台**而非简单 CLI 工具。
+> **结论**: Claude Code 在**隔离化**维度完全达到 Agent 平台标准 (Sandbox + SubAgent + Perm + Worktree)，在**模板化**维度因 AgentDefinition 类型系统和 CustomAgent 支持显示出平台特征。从架构复杂度 (1884 文件) 和多入口设计判断，Claude Code 是一个**闭源 Agent 平台**而非简单 CLI 工具。
 
 ### 5.2 值得关注的架构特征 (供 CMA 参考)
 
 | 特征 | 描述 | 参考价值 |
-|------|------|---------|
-| **Sandbox 四层结构** | shouldUseSandbox → convertToConfig → bashPermissions → Shell.ts/cleanup | 分层决策模型值得借鉴 — 决策/配置/权限/执行解耦 |
-| **三套 Multi-Agent 并存** | SubAgent + Coordinator→Workers + Swarm 同时存在 | 不同协作拓扑适用于不同任务类型 — 层级化 vs 扁平化 |
-| **多入口统一内核** | CLI/REPL/SDK/MCP/Bridge/Remote 共享同一个 QueryEngine | 入口多样化但内核统一 — 避免重复实现 |
-| **Hooks 事件机制** | pre/post tool execution hooks | 生命周期钩子支持记忆保存/审计/权限检查等横切关注点 |
-| **流式工具执行** | StreamingToolExecutor — 工具执行中实时可见中间输出 | 改善 LLM 可见性 — 不等工具完成即可开始下一步推理 |
+|------|------|---------| 
+| **Sandbox 四层结构** | shouldUse → convertToConfig → PermissionRule → execute+cleanup | 分层决策模型 — 决策/配置/权限/执行完全解耦, 985 行 adapter |
+| **6 个专业化 Built-in Agents** | GeneralPurpose + Plan(只读) + Explore(快速) + Verification(对抗) + Guide + Statusline | 不同角色有不同 system prompt, model, tool set, constraint — 专业化分工 |
+| **Fork Subagent 的 Cache Sharing** | byte-identical prefix 所有 fork children, 仅 directive 不同 | 利用 Anthropic prompt cache 的巧妙设计 — 跨子 agent 共享缓存 |
+| **3 种 Multi-Agent 拓扑共存** | Fork (父子继承) + Coordinator (层级) + Swarm (对等/tmux) | 不同任务类型匹配不同拓扑 — 灵活性与复杂度共存 |
+| **Feature Gate 驱动的架构演化** | 100+ GrowthBook flags 控制所有核心功能是否启用 | 数据驱动功能发布, 但增加代码分支复杂度 |
+| **Hooks 生命周期** | pre/post compact + session_start + post sampling hooks | 标准化注入点 — 审计/记忆/权限/日志均可横切 |
+| **双路径 Teammate** | AsyncLocalStorage (in-process) + dynamicTeamContext (tmux) | 同一接口支持不同运行模式 (进程内 vs 进程外) |
+| **MEMORY.md 双层 truncation** | 200 lines + 25KB bytes 双层上限 | 防止超大索引破坏 prompt, 含降级警告 |
 
 ---
 
 ## 六、依赖分析 (隐式能力推导)
 
-基于 TypeScript 源码 + 架构反推 (社区分析未提供 package.json 细节):
+基于 TypeScript 源码导入推导：
 
-| 推断依赖 | 推导能力 | 确定性 |
-|---------|---------|--------|
-| React + Ink | 终端 TUI 渲染 (JSX 组件化) | 高 (cli.tsx) |
-| Anthropic Node SDK (`@anthropic-ai/sdk`) | Claude API 调用 | 高 |
-| MCP SDK (`@modelcontextprotocol/sdk`) | MCP 协议客户端 | 高 |
-| Node.js ≥18 | 运行时 (TypeScript → ESM/CJS) | 高 |
-| ripgrep / grep 库 | 代码搜索 (search_files) | 中 |
-| diff 库 | patch 生成和应用 | 中 |
-| glob 库 | 文件模式匹配 | 中 |
-| tree-sitter | 代码解析 (推断) | 低 |
+| 推断依赖 | 推导能力 | 确定性 | 源码出处 |
+|---------|---------|--------|---------|
+| React + Ink | 终端 TUI 渲染 (JSX) | **确定** | `entrypoints/cli.tsx`, all `commands/*.tsx` |
+| React Compiler (`react/compiler-runtime`) | JSX 编译优化 | **确定** | 所有 .tsx 文件 `import { c as _c } from "react/compiler-runtime"` |
+| `@anthropic-ai/sdk` | Claude API 调用 + types | **确定** | `query.ts:2,5`, `Tool.ts:1-3` |
+| `@anthropic-ai/sandbox-runtime` | 沙箱引擎 | **确定** | `sandbox-adapter.ts:7-22` |
+| `@modelcontextprotocol/sdk` | MCP 协议 | **确定** | `tools/MCPTool/MCPTool.ts:7-8` (ElicitRequestURLParams), `utils/mcpWebSocketTransport.ts:1-5` |
+| `chokidar` | 文件监听 | **确定** | `utils/skills/skillChangeDetector.ts:1` |
+| `zod/v4` | Schema 验证 | **确定** | `tools/MCPTool/MCPTool.ts:1` (z from 'zod/v4') |
+| `lodash-es` | 工具函数 (uniqBy, memoize, last) | **确定** | 多处: `tools.ts:86`, `sessionStorage.ts:18`, `QueryEngine.ts:4` |
+| `ws` (WebSocket) | Node WebSocket 实现 | **确定** | `utils/mcpWebSocketTransport.ts:6` (import type WsWebSocket from 'ws') |
+| `strip-ansi` | ANSI 去除 | **确定** | `QueryEngine.ts:78` |
+| Bun runtime | 构建 + 原生 WebSocket + MACRO | **确定** | `bun:bundle` feature imports, `typeof Bun !== 'undefined'` checks |
+| `diff` library | 推断: patch 生成和应用 | **中-高** | FileEditTool 逻辑推断 |
+| `ripgrep` / embedded ugrep | 代码搜索 | **确定** | `sandbox-adapter.ts:59` (ripgrepCommand import), `constants/tools.ts` hasEmbeddedSearchTools() |
+| GrowthBook + Statsig + Datadog | 分析系统 | **确定** | `services/analytics/` (8 files) |
 
 ---
 
 ## 七、独特性汇总
 
-1. **Sandbox 四层结构**: shouldUseSandbox → convertToConfig → bashPermissions → Shell.ts/cleanup 的分层解耦设计在已知分析产品中最为精细。每一层有独立职责且可独立替换。
+1. **Sandbox 四层结构**: `utils/sandbox/sandbox-adapter.ts` — 决策层 → 配置层(convertToSandboxRuntimeConfig) → 权限层(PermissionRule) → 执行层(@anthropic-ai/sandbox-runtime + cleanup)。985 行完整实现，层间完全解耦。
 
-2. **三套 Multi-Agent 模式并存**: SubAgent (层级) + Coordinator→Workers (协调者) + Swarm (对等群体) 三种协作拓扑同时存在于同一平台，覆盖从简单委派到复杂群体协作的全谱场景。
+2. **6 个专业化 Built-in Agents**: `tools/AgentTool/builtInAgents.ts:22-72` — 不同 agent 有独立的 system prompt (GENERAL: 通用多步, PLAN: 只读架构师, EXPLORE: 快速搜索 haiku/ant inherit, VERIFICATION: 对抗式验证 "try to break it"), 独立的 tool set (禁写/禁 agent/tools=['*']), 独立的 model 配置。这是目前所有已分析产品中 Agent 专业化程度最高的设计。
 
-3. **多入口统一内核**: CLI / REPL / SDK / MCP / Bridge / Remote 六种入口共享同一个 QueryEngine 内核，是入口多样性最高的分析产品。
+3. **Fork Subagent 的 Cache Sharing 设计**: `tools/AgentTool/forkSubagent.ts:107-169` — 所有 fork children 使用 byte-identical API request prefix (placeholder 结果相同), 仅 directive 不同。这是对 Anthropic prompt cache 的深度利用，在已知分析产品中未见。
 
-4. **流式工具执行器 (StreamingToolExecutor)**: 工具执行过程中实时流式返回中间输出，让 LLM 不等工具完成即可开始推理下一步。在已知分析产品中未见同类机制。
+4. **三套 Multi-Agent 模式并存**: Fork (父子继承, maxTurns=200) + Coordinator→Workers (层级协调者, feature gate) + Swarm/Teammate (对等 tmux/in-process/external 三 backend)。`utils/teammate.ts` 双路径 identity resolution (AsyncLocalStorage vs dynamicTeamContext)。
 
-5. **Hooks 生命周期机制**: pre/post tool execution hooks 为横切关注点 (审计/记忆/权限/日志) 提供了标准注入点。
+5. **多入口统一内核**: CLI (entrypoints/cli.tsx) / SDK / print (headless) / Remote (SessionsWebSocket) / MCP Server (claude-in-chrome) / Chrome Native Host — 六种入口共享同一个 `QueryEngine` + `query.ts` 内核。
 
-6. **MemDir 持久化记忆**: 文件系统级的跨 session 记忆持久化 (memdir/), 与 sessionStorage (临时) + SessionMemory (结构化) 形成三层记忆体系。
+6. **StreamingToolExecutor**: `services/tools/StreamingToolExecutor.ts` — 工具执行中实时流式返回中间输出，让 LLM 不等工具完成即可开始下一步推理。在已知分析产品中未见同类机制。
 
-7. **Bridge + Remote + Swarm 远程协作**: 完整的远程/分布式 agent 能力栈 — Bridge (点对点), Remote (远程调用), Swarm (群体协作)。
+7. **GrowthBook 驱动的 Feature Gate 体系**: 100+ 实验开关 (`feature('X')`) 控制几乎所有核心功能。代码中充斥 `feature('X') ? require() : null` (dead code elimination) 模式 — 这是 data-driven product development 在大规模 TypeScript agent 项目中的典范。
+
+8. **MEMORY.md 双层 Truncation**: `memdir/memdir.ts` — 200 行 + 25KB 双层上限，同时检查 line count 和 byte count，智能降级警告 (精确指出是 line cap 还是 byte cap)。
+
+9. **Verification Agent 的 Adversarial 设计**: `tools/AgentTool/built-in/verificationAgent.ts` — "Your job is not to confirm the implementation works — it's to try to break it"。包含 9 种验证策略 (Frontend/Backend/CLI/Infra/Library/Bug/Mobile/Data/Migration) + adversarial probes (Concurrency/Boundary/Idempotency/Orphan ops)。要求每个 PASS check 必须包含实际命令运行。
+
+10. **Skill Change Detector 的 Bun 死锁 Workaround**: `utils/skills/skillChangeDetector.ts:52-62` — Bun's fs.watch() 有 PathWatcherManager deadlock (oven-sh/bun#27469)，因此 force USE_POLLING under Bun。这是生产级工程对 runtime bug 的现实响应。
 
 ---
 
@@ -439,74 +530,82 @@ User: "Audit the entire codebase for security vulnerabilities"
 
 | 声明 | 验证状态 | 来源验证 |
 |------|---------|---------|
-| 源码语言: TypeScript | ✅ 准确 | 社区分析仓库 README |
-| 文件数: 1902 | ✅ 准确 | 同上 |
-| 代码行数: 513k | ✅ 准确 | 同上 |
-| 分析仓库 Stars: 2.2k | ✅ 准确 | GitHub |
-| Sandbox 四层结构 | ✅ 准确 | 社区分析 README 明确描述 |
-| 三套 Multi-Agent | ✅ 准确 | 同上 |
-| CLI/REPL/SDK/MCP/Bridge/Remote 多入口 | ✅ 准确 | 同上 |
+| 源码语言: TypeScript | ✅ 准确 | src/ 目录 1884 .ts/.tsx 文件 |
+| 6 个 Built-in Agents | ✅ 准确 | `tools/AgentTool/builtInAgents.ts:22-72` 明确列出 |
+| Sandbox 四层结构 | ✅ 准确 | `utils/sandbox/sandbox-adapter.ts:985` 完整实现 |
+| Fork Subagent | ✅ 准确 | `tools/AgentTool/forkSubagent.ts:210` 完整实现 |
+| Swarm/Teammate 三 Backend | ✅ 准确 | `utils/swarm/` + `utils/teammate.ts:292` |
+| Coordinator Mode | ✅ 准确 (feature gated) | `coordinator/coordinatorMode.ts:369` |
+| Skill 变更检测 | ✅ 准确 | `utils/skills/skillChangeDetector.ts:311` (chokidar, 1000ms threshold) |
+| Memory 5 层类型 | ✅ 准确 | `utils/memory/types.ts:3-10` |
+| MCP WebSocket Transport | ✅ 准确 | `utils/mcpWebSocketTransport.ts:200` |
+| StreamingToolExecutor | ✅ 准确 | `services/tools/StreamingToolExecutor.ts`, `query.ts:96` |
+| 40+ Tools registry | ✅ 准确 | `tools.ts:3-97` (40+ explicit tool imports) |
 | 非官方开源 | ✅ 准确 | 事实: 基于 npm source map 泄露 |
 
 ### 8.2 需修正/标注不确定项
 
 | 声明 | 问题 | 修正/标注 |
 |------|------|----------|
-| Skills 系统存在 | 未在社区分析 README 中直接确认 | 标注为「推断」— 基于 Anthropic Agent Skills 规范和 MCP/Plugin 生态反推 |
-| Browser 自动化 | 未在社区分析 README 中确认 | 标注为「未知」— 不在已知特征列表中 |
-| 压缩触发阈值 | 无源码直接验证 | 标注为「推断」— 基于同类产品对比 |
-| Hooks 内存保存 | 功能存在但细节未验证 | 标注为「推断」— hooks/ 目录存在但具体钩子列表未知 |
-| 无多 Provider 支持 | 基于 Anthropic 产品策略推断 | 标注为「高确定性」— Claude Code 作为 Anthropic 产品深度绑定 Claude 模型是合理的商业策略 |
+| workerAgent.ts | 通过 `feature('COORDINATOR_MODE') ? require() : null` 动态引入, 当前 build 中不存在 | 标注为「feature-gated, 不存在于当前源码 build」 |
+| Browser 自动化 | 源码中未见原生 browser tools, 仅通过 MCP (claude-in-chrome MCP server) 提供 | 标注为「仅 MCP 路径」 |
+| 完整 Tools 数量 | tools.ts 中 40+ 显式 import + MCP 动态 + Plugin 动态 | 标注为「~40+ 内置 + 动态」 |
+| VerifyPlanExecutionTool | 由 `CLAUDE_CODE_VERIFY_PLAN` env 控制 | 标注为「条件引入」 |
+| Skills 自我创建 | AutoMem 存在但未确认是否自动从经验创建 skills | 标注为「未确认」 |
 
 ### 8.3 遗漏项
 
 | 遗漏项 | 原因 |
 |--------|------|
-| 完整的 Tool 列表 (所有工具名称和参数) | 社区 analysis/ 目录覆盖度有限 |
-| Plugin 系统具体 API | 同上 |
-| Skills 加载机制细节 | 同上 |
-| Swarm/Bridge/Remote 通信协议 | 同上 |
-| 配置系统完整结构 (config 文件格式) | 同上 |
-| package.json 完整依赖树 | 社区分析仓库未提供 |
+| workerAgent.ts 完整实现 | Feature-gated, dead code eliminated from this build |
+| Plugin 系统具体 API 表面 | `utils/plugins/pluginLoader.js` 未被完整读取 |
+| Skills 加载机制完整细节 | `skills/loadSkillsDir.js` 未被完整读取 |
+| Configuration 完整格式 | `utils/config.js` + `utils/settings/` 未被完整读取 |
+| package.json 完整依赖树 | 仓库根目录可能不在 src/ 下 |
+| Coordinator Mode worker scheduling logic | workerAgent.ts 不在当前 build |
+| ALL custom agent definitions (非 built-in) | `tools/AgentTool/loadAgentsDir.js` 未被完整读取 |
 
 ### 8.4 总体准确性评分
 
-- **社区分析 README 直接支撑**: ~40% (8/20 核心声明)
-- **架构反推 (目录名+标准模式)**: ~35% (7/20)
-- **同类产品对比推断**: ~15% (3/20)
-- **合理推断 (标注)**: ~10% (2/20)
-- **总体评分: 中等准确性** — 受限于社区分析的覆盖度，约 40% 的特征有直接来源支撑。Sandbox/多Agent/Session/MCP 等核心特征来源明确，但细粒度工具/配置/Plugin 等细节不足。
+- **源码直读直接支撑**: ~80% (绝大多数特征有具体源码文件/行号)
+- **源码推理 (based on import graph)**: ~15%
+- **合理推断 (标注)**: ~5%
+- **总体评分: 高准确性** — 相比社区二手分析 (~40%)，源码直读提供了 ~80% 的直接支撑。核心特征 (6 agents, sandbox, fork, swarm, MCP, compact, memory, skill detector) 均有精确的文件和行号引用。
 
-> ⚠️ **关键限制**: 本报告完全基于社区对泄露源码的分析，非 Anthropic 官方文档。所有发现均受限于 liuup/claude-code-analysis 仓库的 analysis/ 目录覆盖度。建议结合 Anthropic 官方文档和产品实际使用进行交叉验证。
+> ⚠️ **关键限制**: 本报告基于泄露源码的 src/ 目录直接阅读，非 Anthropic 官方文档。某些模块 (如 workerAgent) 因 feature gate + dead code elimination 不在当前 build 中。1884 个文件仅停留于关键架构模块的 depth-1 分析。
 
 ---
 
-## 附录: 文件索引 (基于社区分析仓库)
+## 附录: 文件索引 (基于源码仓库)
 
-| 源文件 | 路径 (analysis/ 下) | 推断行数 |
-|--------|------|------|
-| CLI 入口 | `analysis/cli.tsx` | ~500+ |
-| REPL 启动 | `analysis/main.tsx` | ~300+ |
-| 初始化引导 | `analysis/init.ts` | ~200+ |
-| 配置设置 | `analysis/setup.ts` | ~200+ |
-| 命令注册 | `analysis/commands.ts` | ~300+ |
-| 查询引擎 | `analysis/query.ts` | ~500+ |
-| 查询引擎核心 | `analysis/QueryEngine.ts` | ~800+ |
-| 工具定义 | `analysis/Tool.ts` | ~600+ |
-| 工具编排 | `analysis/toolOrchestration` (目录或文件) | ~400+ |
-| 流式工具执行器 | `analysis/StreamingToolExecutor` | ~300+ |
-| Shell 执行 | `analysis/Shell.ts` | ~400+ |
-| 权限系统 | `analysis/Perm/` (目录) | ~500+ |
-| Bash 权限 | `analysis/bashPermissions/` (目录) | ~300+ |
-| Sandbox | `analysis/Sandbox/` (目录) | ~600+ |
-| 会话存储 | `analysis/sessionStorage/` (目录) | ~200+ |
-| 持久记忆 | `analysis/memdir/` (目录) | ~200+ |
-| 会话记忆 | `analysis/SessionMemory/` (目录) | ~200+ |
-| Hooks 钩子 | `analysis/hooks/` (目录) | ~200+ |
-| 上下文压缩 | `analysis/compact/` (目录) | ~300+ |
-| MCP 集成 | `analysis/MCP/` (目录) | ~500+ |
-| Plugin 系统 | `analysis/Plugin/` (目录) | ~300+ |
-| Skills 扩展 | `analysis/Skills/` (目录) | ~300+ |
-| Remote 远程 | `analysis/Remote/` (目录) | ~300+ |
-| Bridge 桥接 | `analysis/Bridge/` (目录) | ~200+ |
-| Swarm 集群 | `analysis/Swarm/` (目录) | ~400+ |
+| 源文件 | 路径 (src/ 下) | 源码行数 |
+|--------|------|------| 
+| 6 Built-in Agents 注册 | `tools/AgentTool/builtInAgents.ts` | 72 |
+| GENERAL_PURPOSE Agent | `tools/AgentTool/built-in/generalPurposeAgent.ts` | 34 |
+| EXPLORE Agent | `tools/AgentTool/built-in/exploreAgent.ts` | 83 |
+| PLAN Agent | `tools/AgentTool/built-in/planAgent.ts` | 92 |
+| VERIFICATION Agent | `tools/AgentTool/built-in/verificationAgent.ts` | 152 |
+| CLAUDE_CODE_GUIDE Agent | `tools/AgentTool/built-in/claudeCodeGuideAgent.ts` | — |
+| STATUSLINE_SETUP Agent | `tools/AgentTool/built-in/statuslineSetup.ts` | — |
+| Coordinator Mode | `coordinator/coordinatorMode.ts` | 369 |
+| Fork Subagent | `tools/AgentTool/forkSubagent.ts` | 210 |
+| Swarm/Teammate Identity | `utils/teammate.ts` | 292 |
+| Swarm Constants | `utils/swarm/constants.ts` | 33 |
+| Multi-Agent Spawn | `tools/shared/spawnMultiAgent.ts` | 1093 |
+| Sandbox Adapter (4 层) | `utils/sandbox/sandbox-adapter.ts` | 985 |
+| Sandbox Doctor | `components/sandbox/SandboxDoctorSection.tsx` | 45 |
+| Sandbox Permission UI | `components/permissions/SandboxPermissionRequest.tsx` | 162 |
+| Skill Change Detector | `utils/skills/skillChangeDetector.ts` | 311 |
+| Memory Types | `utils/memory/types.ts` | 12 |
+| Memory Entrypoint | `memdir/memdir.ts` | 507 |
+| Session Storage | `utils/sessionStorage.ts` | 5105 |
+| Compact Service | `services/compact/compact.ts` | 1705 |
+| Compact Directory | `services/compact/` | 11 files |
+| MCP Tool | `tools/MCPTool/MCPTool.ts` | 77 |
+| MCP WebSocket Transport | `utils/mcpWebSocketTransport.ts` | 200 |
+| Query Engine (class) | `QueryEngine.ts` | 1295 |
+| Query Loop (generator) | `query.ts` | 1729 |
+| Tool Type System | `Tool.ts` | 792 |
+| Tool Registry | `tools.ts` | 389 |
+| Tool Constants | `constants/tools.ts` | 112 |
+| CLI Entrypoint | `entrypoints/cli.tsx` | 302 |
