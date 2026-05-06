@@ -193,10 +193,10 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | **D1. 通信广度** | ████ 4 | ██ 1 | ███ 3 | ████ 4 | █ 0 | ██ 2 | █ 1 | ███ 3 |
 | **D2. 执行深度** | ███ 3 | ██ 2 | ████ 4 | ████ 4 | ██ 2 | ████ 4 | ███ 3 | ███ 3 |
 | **D3. 任务编排** | ████ 4 | ████ 4 | ███ 3 | ████ 4 | ██ 2 | ████ 4★ | ███ 3 | ███ 3 |
-| **D4. 安全隔离** | ██ 2 | ██ 2 | ███ 3 | ██ 2 | █ 1 | ████ 4 | ████ 4 | ███ 3 |
+| **D4. 安全隔离** | ███ 3 | ██ 2 | ███ 3 | ███ 3 | █ 1 | ████ 4 | ███ 3 | ███ 3 |
 | **D5. 记忆系统** | ██ 2 | ███ 3 | ██ 2 | ████ 4 | █ 1 | ████ 4 | ███ 3 | ██ 2 |
 | **D6. 扩展生态** | ████ 4 | ███ 3 | ███ 3 | ████ 4 | ██ 2 | ████ 4 | ██ 2 | ████ 4 |
-| **平均分** | **3.17** | **2.50** | **3.00** | **3.67** | **1.33** | **3.67** | **2.67** | **3.00** |
+| **平均分** | **3.33** | **2.50** | **3.00** | **3.83** | **1.33** | **3.67** | **2.50** | **3.00** |
 | **社区规模** | 368k ★ | 22k ★ | 64k ★ | 132k ★ | 33k ★ | 泄露分析 | 80k ★ | 155k ★ |
 
 > ★ Claude Code D3 实际能力超越 4 分体系（三套 Multi-Agent 并存），但评分体系上限为 4。
@@ -267,7 +267,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Agent隔离 | 同实例多Agent配置+资源per-Agent隔离 | ✅ 实现: `agents.list[]`数组: 每Agent独立skills/tools/model/thinking。配置: per-agent `skills` allowlist(替换非合并)+`skillsLimits`。效果: **full per-agent资源隔离** | ✅ 实现: SubGraphAgent三种形态(声明式/预编译/远程)+per-subagent middleware继承。效果: 三种形态均支持独立配置 | ✅ 实现: `subagents.custom_agents`独立system_prompt/tools/model+per-agent timeout/max_turns。效果: per-agent资源隔离 | ⚠️ delegate_task支持子Agent+独立工具集+budget。**但无agents.list[]多Agent配置语法** | 🔒 闭源(Cloud Agent支持customSubagents) | ✅ 实现: 6 built-in+Coordinator+Swarm三套并行+per-agent独立worktree。配置: `.claude/agents/*.md`声明式。效果: **已知产品最丰富Multi-Agent隔离体系** | ✅ 实现: `CodexSpawnArgs{config,auth,model,env,skills,mcp}`+agent-graph-store图拓扑。效果: per-agent全协议配置+图状隔离 | ✅ 实现: Agent mode: subagent/primary/all+per-Agent permission+per-Agent model。配置: `Agent.Info{mode, permission, model}` Effect Schema。效果: 三级角色+per-Agent资源 |
 | 审计日志 | Agent操作完整记录 | ✅ 实现: 双层审计: (1)`config/io.audit.ts`(300+行)—`config-audit.jsonl`文件(`$OPENCLAW_STATE_DIR/logs/config-audit.jsonl`,0700目录/0600文件), 记录`ConfigWriteAuditRecord`(21+字段:pid/ppid/cwd/argv/hash/bytes/gatewayMode/suspicious等)+`ConfigObserveAuditRecord`(30+字段含backup恢复信息), `redactConfigAuditArgv()`脱敏40+secret flag名+suffix heuristic; (2)`config/schema.base.generated.ts`—`logging.level`(silent~trace)+`logging.file`持久化路径+`redactSensitive: "tools"`+`redactPatterns`自定义正则+OpenTelemetry日志导出+`cache-trace.jsonl`。CLI: `openclaw security audit --deep`(Gateway实时探针)+`--fix`(自动修复)+`--json`(机器可读)。效果: 配置文件变更完整审计链(前/后hash+inode+uid/gid+备份恢复)+Gateway层JSONL操作日志+进程级审计(pid/ppid/cwd/argv) | - | ⚠️ 实现: 每日文件夹+JSONL格式记录。效果: 按日归档，非实时审计 | ✅ 实现: `hermes_logging.py`—3个RotatingFileHandler(agent.log/errors.log/gateway.log)+RedactingFormatter+session_id上下文。配置: `logging.level`/`max_size_mb`/`backup_count`/`security.redact_secrets`。效果: 完整操作日志，30+种secret脱敏，session关联 | ❓ 闭源 | ✅ 实现: sessionStorage完整持久化(含transcript+操作记录)。效果: 所有对话+操作完整记录，可重放 | ❓ | - |
 
-| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **4** | **3** |
+| **得分** | | **3** | **2** | **3** | **3** | **1** | **4** | **3** | **3** |
 |---------|------|-------|-------|--------|--------|---------|---------|-------|--------|
 
 #### D5: 持久化与记忆系统
@@ -305,14 +305,14 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 | 排名 | 产品 | 平均分 | D1 | D2 | D3 | D4 | D5 | D6 | 核心判语 |
 |:----:|------|:------:|:--:|:--:|:--:|:--:|:--:|:--:|---------|
-| **1** | **Claude Code** | **3.67** | 2 | 4 | 4★ | 4 | 4 | 4 | Multi-Agent 深度无出其右，4层沙箱+5层记忆，但单 vendor |
-| **1** | **Hermes Agent** | **3.67** | 4 | 4 | 4 | 2 | 4 | 4 | 最全面产品：200+ Provider + 自我完善闭环 + 18+ 渠道 |
-| 3 | OpenClaw | 3.17 | 4 | 3 | 4 | 2 | 2 | 4 | 24+ 渠道 + 消费级完工程度 + 368k 社区，但 D5 偏弱 |
-| 4 | DeerFlow 2.0 | 3.00 | 3 | 4 | 3 | 3 | 2 | 3 | 18层MW + 四层沙箱 + K3s 多租户雏形，权衡产品 |
-| 4 | OpenCode | 3.00 | 3 | 3 | 3 | 3 | 2 | 4 | 全栈最均匀：Web+Desktop+Slack + Effect-TS 函数式架构 |
-| 6 | Codex | 2.67 | 1 | 3 | 3 | 4 | 3 | 2 | Landlock 内核级沙箱+Guardian 审批，安全最强但单 vendor |
-| 7 | Deep Agents | 2.50 | 1 | 2 | 4 | 2 | 3 | 3 | 13层MW + 三种 SubAgent + 108 evals，但无独立运行时 |
-| 8 | Cursor SDK | 1.33 | 0 | 2 | 2 | 1 | 1 | 2 | IDE 生态内强大，闭源不可审计，无独立通信层 |
+| **1** | **Hermes Agent** | **3.83** | 4 | 4 | 4 | 3 | 4 | 4 | 全场景最均衡：200+Provider+完整HITL+Curator闭环+18+渠道。D4已从2修正为3 |
+| **2** | **Claude Code** | **3.67** | 2 | 4 | 4★ | 4 | 4 | 4 | Multi-Agent深度无出其右，4层沙箱+5层记忆+3重SessionSearch。单vendor |
+| 3 | OpenClaw | 3.33 | 4 | 3 | 4 | 3 | 2 | 4 | 24+渠道+消费级完工程度+368k社区。D4从2修正为3(完整HITL+审计+SkillWorkshop) |
+| 4 | DeerFlow 2.0 | 3.00 | 3 | 4 | 3 | 3 | 2 | 3 | 18层MW+四层沙箱+K3s多租户雏形。权衡产品 |
+| 4 | OpenCode | 3.00 | 3 | 3 | 3 | 3 | 2 | 4 | 全栈最均匀：Web+Desktop+Slack+Effect-TS函数式。5层Loop防护 |
+| 6 | Deep Agents | 2.50 | 1 | 2 | 4 | 2 | 3 | 3 | 13层MW+三种SubAgent+108 evals。无独立运行时 |
+| 6 | Codex | 2.50 | 1 | 3 | 3 | 3 | 3 | 2 | D4从4修正为3(Landlock+Guardian但缺DM/威胁检测)。唯一独立MCP三级审批 |
+| 8 | Cursor SDK | 1.33 | 0 | 2 | 2 | 1 | 1 | 2 | IDE生态内强大，闭源不可审计 |
 
 > ★ Claude Code D3 实际能力超越 4 分体系（三套 Multi-Agent 并存），评分上限为 4。
 
