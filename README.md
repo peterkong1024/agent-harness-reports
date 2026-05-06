@@ -4,9 +4,11 @@
 
 ## 概述
 
-本仓库包含 5 款主流开源 Agent Harness 产品的深度技术分析报告，覆盖从垂直能力解构、横向对比矩阵到 CMA 落地方案的全流程。所有声明均标注源码出处，遵循"特征逆向挖掘法"——不预设评价维度，从源码/文档/社区反馈反向推导产品能力。
+本仓库包含 8 款主流 Agent 产品的深度技术分析报告，覆盖从垂直能力解构、横向对比矩阵到 CMA 落地方案的全流程。所有声明均标注源码出处，遵循"特征逆向挖掘法"——不预设评价维度，从源码/文档/社区反馈反向推导产品能力。
 
 ## 分析对象
+
+### Harness Agent 产品 (5 款)
 
 | 产品 | GitHub | Stars | 语言 | 定位 |
 |------|--------|------:|------|------|
@@ -15,6 +17,14 @@
 | **DeerFlow 2.0** | [bytedance/deer-flow](https://github.com/bytedance/deer-flow) | 64k | Python | Super Agent Harness |
 | **Cursor SDK** | [cursor/cursor](https://github.com/cursor/cursor) | 33k | TypeScript | IDE-native Agent SDK (闭源) |
 | **Deep Agents** | [langchain-ai/deepagents](https://github.com/langchain-ai/deepagents) | 22k | Python | Batteries-included Agent Harness SDK |
+
+### Coding Agent 产品 (3 款 — 2026-05-06 新增)
+
+| 产品 | GitHub | Stars | 语言 | 定位 |
+|------|--------|------:|------|------|
+| **OpenCode** | [anomalyco/opencode](https://github.com/anomalyco/opencode) | 155k | TypeScript | Open source coding agent |
+| **Codex** | [openai/codex](https://github.com/openai/codex) | 80k | Rust+TS | Lightweight coding agent |
+| **Claude Code** | [liuup/claude-code-analysis](https://github.com/liuup/claude-code-analysis) | 2.2k | TypeScript | Local agent platform (泄露源码分析) |
 
 ## 方法论
 
@@ -28,13 +38,13 @@
   4. 推断 (标注 "推断: ...")
 ```
 
-不预设评价维度，通过扫描源码目录结构、依赖声明、配置文件 Schema、CI/CD pipeline 和 GitHub Issues，自底向上提取 360+ 条原子特征，再通过语义聚类归一化为 6 个核心评价维度。
+不预设评价维度，通过扫描源码目录结构、依赖声明、配置文件 Schema、CI/CD pipeline 和 GitHub Issues，自底向上提取原子特征，再通过语义聚类归一化为 6 个核心评价维度。
 
 ### 三阶段执行流程
 
 | 阶段 | 名称 | 核心目标 | 产出 |
 |------|------|---------|------|
-| **Phase 1** | 垂直解析 | 单品深度解构 | 5 份垂直能力报告 + 校准备忘录 |
+| **Phase 1** | 垂直解析 | 单品深度解构 | 8 份垂直能力报告 + 校准备忘录 |
 | **Phase 2** | 聚类建模 | 基准维度确立 | 6 维度评价框架 + 四级成熟度标准 |
 | **Phase 3** | 横向映射 | 选型矩阵输出 | 横向对比报告 + 3 场景加权评分 |
 
@@ -55,22 +65,25 @@
 
 | 文件 | 说明 |
 |------|------|
-| `harness-agent-cross-comparison-report.md` | **核心报告**。含 6 维度 × 5 产品对比矩阵、3 场景加权评分、CMA 工程核查、Benchmark 摸底 |
+| `harness-agent-cross-comparison-report.md` | **核心报告**。含 6 维度 × 8 产品对比矩阵、3 场景加权评分、CMA 工程核查、Benchmark 摸底 |
 
 ### 📋 垂直能力解构报告 (单品深度)
 
 | 文件 | 产品 | Stars |
 |------|------|------:|
 | `openclaw-vertical-capability-report.md` | OpenClaw | 368k |
+| `opencode-vertical-capability-report.md` | OpenCode | 155k |
 | `hermes-vertical-capability-report.md` | Hermes Agent | 132k |
+| `codex-vertical-capability-report.md` | Codex | 80k |
 | `deerflow-2.0-vertical-capability-report.md` | DeerFlow 2.0 | 64k |
 | `cursor-sdk-vertical-capability-report.md` | Cursor SDK | 33k |
 | `deepagents-vertical-capability-report.md` | Deep Agents | 22k |
+| `claude-code-vertical-capability-report.md` | Claude Code | 泄露分析 |
 
 每份垂直报告包含：
 - **产品画像**: 定位、技术栈、数据来源层级
 - **架构图提取**: 优先使用官方 ASCII 架构图
-- **原子化特征提取表**: 8 维度 × 5 列 (特征/方案/效果/独特性/来源)
+- **原子化特征提取表**: 6 维度 × 5 列 (特征/方案/效果/独特性/来源)
 - **技术链路验证**: 正常路径 + 异常路径执行流
 - **Gap Analysis**: 三源交叉验证 (Issues + 源码 + 产品对比)
 - **多租户/Memory/沙箱补充核查**
@@ -78,13 +91,13 @@
 
 ### ✅ 校准备忘录
 
-| 文件 | 产品 |
-|------|------|
-| `openclaw-calibration-memo.md` | OpenClaw |
-| `deepagents-calibration-memo.md` | Deep Agents |
-| `cursor-sdk-calibration-memo.md` | Cursor SDK |
-
-每份备忘录包含：逐项事实核查表、修正建议、总体准确性评分。
+| 文件 | 产品 | 评分 |
+|------|------|:---:|
+| `deerflow-2.0-calibration-memo.md` | DeerFlow 2.0 | A |
+| `openclaw-calibration-memo.md` | OpenClaw | B+ |
+| `deepagents-calibration-memo.md` | Deep Agents | B/B+ |
+| `cursor-sdk-calibration-memo.md` | Cursor SDK | B |
+| *(Claude Code / Codex / OpenCode 校准备忘录内嵌于各垂直报告)* |
 
 ### 🏗️ CMA 落地方案
 
@@ -107,13 +120,20 @@
 
 ## 核心结论
 
-### 场景加权排名
+### 8 产品总览矩阵
 
-| 排名 | 个人 AI 助手 | 企业 Agent 平台 | 开发者 SDK |
-|:----:|:-----------:|:------------:|:----------:|
-| 1 | Hermes Agent 3.60 | Hermes Agent 3.40 | Hermes Agent 3.80 |
-| 2 | OpenClaw 3.05 | DeerFlow 2.0 3.10 | OpenClaw 3.40 |
-| 3 | DeerFlow 2.0 2.95 | OpenClaw 3.00 | DeerFlow 2.0 3.25 |
+| 排名 | 产品 | 平均分 | 定位 | 亮点 |
+|:---:|------|:---:|------|------|
+| 1 | **Hermes Agent** | 3.67 | 全场景 Agent 平台 | 自我完善闭环 + FTS5 搜索 |
+| 1 | **Claude Code** | 3.67 | 本地代码 Agent 平台 | 三套 Multi-Agent 并存 |
+| 3 | OpenClaw | 3.17 | Personal AI Assistant | 24+ 渠道 + Plugin SDK |
+| 4 | DeerFlow 2.0 | 3.00 | Super Agent Harness | CMA 工程就绪度最高 |
+| 5 | OpenCode | 2.67 | 开源编码 Agent | Client/Server + LSP |
+| 6 | Deep Agents | 2.50 | Agent Harness SDK | 编排最强 (13 层 MW) |
+| 7 | Codex | 2.17 | 轻量终端编码 Agent | Rust 核心 + OS 级沙箱 |
+| 8 | Cursor SDK | 1.33 | IDE Agent SDK (闭源) | — |
+
+> Claude Code D3 实际能力超越 4 分体系（三套 Multi-Agent: SubAgent / Coordinator-Workers / Swarm），但评分上限为 4。
 
 ### 选型推荐
 
@@ -121,6 +141,7 @@
 |------|------|------|
 | 企业 Agent 管理系统 (类 CMA) | Hermes Agent / DeerFlow 2.0 | 编排+记忆全优，二者均需补多租户 |
 | 个人 AI 助手 | OpenClaw / Hermes Agent | OpenClaw 渠道最广，Hermes 能力最全 |
+| 开发者 Coding Agent | Claude Code / OpenCode / Codex | Claude Code 最强，OpenCode 最开源，Codex 最轻量 |
 | 开发者 Agent SDK | Deep Agents / Hermes Agent | Deep 编排最强，Hermes 通用最全 |
 
 ### 共性短板
@@ -132,10 +153,11 @@
 
 | 日期 | 版本 | 说明 |
 |------|------|------|
-| 2026-05-04 | v1 | Phase 1 垂直报告 + 初步 CMA 方案 |
+| 2026-05-04 | v1 | Phase 1 垂直报告 + 初步 CMA 方案 (5 产品) |
 | 2026-05-05 | v2 | 补充多租户/Memory/沙箱生命周期核查 + OpenClaw 官方文档纳入 |
 | 2026-05-05 | v3 | CMA 方案修订 (沙箱并入 Environment + 5 工程问题集成) + Benchmark 摸底 |
 | 2026-05-05 | v4 | OpenClaw D3 评分修正 (2→4) — 源码 CHANGELOG 深度核查 |
+| 2026-05-06 | v5 | 新增 Claude Code / Codex / OpenCode 垂直分析 (8 产品) |
 
 ## 许可
 
