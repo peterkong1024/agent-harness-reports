@@ -188,13 +188,13 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 | 维度 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
-| **D1. 通信广度** | ████ 4 | ██ 1 | ███ 3 | ████ 4 | █ 0 | ██ 2 | █ 1 | ██ 2 |
+| **D1. 通信广度** | ████ 4 | ██ 1 | ███ 3 | ████ 4 | █ 0 | ██ 2 | █ 1 | ███ 3 |
 | **D2. 执行深度** | ███ 3 | ██ 2 | ████ 4 | ████ 4 | ██ 2 | ████ 4 | ███ 3 | ███ 3 |
 | **D3. 任务编排** | ████ 4 | ████ 4 | ███ 3 | ████ 4 | ██ 2 | ████ 4★ | ███ 3 | ███ 3 |
-| **D4. 安全隔离** | ██ 2 | ██ 2 | ███ 3 | ██ 2 | █ 1 | ████ 4 | ████ 4 | ██ 2 |
+| **D4. 安全隔离** | ██ 2 | ██ 2 | ███ 3 | ██ 2 | █ 1 | ████ 4 | ████ 4 | ███ 3 |
 | **D5. 记忆系统** | ██ 2 | ███ 3 | ██ 2 | ████ 4 | █ 1 | ████ 4 | ███ 3 | ██ 2 |
 | **D6. 扩展生态** | ████ 4 | ███ 3 | ███ 3 | ████ 4 | ██ 2 | ████ 4 | ██ 2 | ████ 4 |
-| **平均分** | **3.17** | **2.50** | **3.00** | **3.67** | **1.33** | **3.67** | **2.67** | **2.67** |
+| **平均分** | **3.17** | **2.50** | **3.00** | **3.67** | **1.33** | **3.67** | **2.67** | **3.00** |
 | **社区规模** | 368k ★ | 22k ★ | 64k ★ | 132k ★ | 33k ★ | 泄露分析 | 80k ★ | 155k ★ |
 
 > ★ Claude Code D3 实际能力超越 4 分体系（三套 Multi-Agent 并存），但评分体系上限为 4。
@@ -205,7 +205,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
-| IM 渠道数 | 决定 Agent 可触达用户的平台范围，渠道越多覆盖人群越广 | 24+ | 0 (CLI only) | 6 | 18+ | 0 (IDE only) | 0 (CLI/TUI only) | 0 (CLI only) | 0 (CLI/TUI/Desktop) |
+| IM 渠道数 | 决定 Agent 可触达用户的平台范围，渠道越多覆盖人群越广 | 24+ | 0 (CLI only) | 6 | 18+ | 0 (IDE only) | 0 (CLI/TUI only) | 0 (CLI only) | 5 (CLI/TUI/Web/Desktop/Slack) |
 | 流式输出 | 打字机效果实时反馈，降低用户等待焦虑，提升交互体验 | ✅ WS event | ✅ TUI | ✅ 飞书流式卡片/钉钉AI Card | ✅ KawaiiSpinner | ✅ SSE | ✅ Ink TUI 流式 | ✅ TUI | ✅ TUI + Desktop |
 | Voice | 语音唤醒+对话使 Agent 脱离屏幕，适用于驾驶/家务等不触屏场景 | ✅ Voice Wake/Talk | ❌ | ❌ | ✅ TTS (5 providers) | ❌ | ❌ (纯文本 CLI) | ❌ | ❌ |
 | A2UI Canvas | Agent 可动态生成交互式 Web UI（图表/表单/仪表盘），从纯文本对话升级为富交互 | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ (纯CLI) | ❌ | ❌ |
@@ -247,16 +247,16 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
-| DM 配对 | 未知用户首次 DM 时需手动审批配对码，防止恶意用户直接操控 Agent | ✅ pairing 默认 | ❌ | ❌ | ✅ Gateway DM | ❌ | ❌ (纯CLI, 无DM概念) | ❌ (纯CLI) | ❌ (纯CLI) |
+| DM 配对 | 未知用户首次 DM 时需手动审批配对码，防止恶意用户直接操控 Agent | ✅ pairing 默认 | ❌ | ❌ | ✅ Gateway DM | ❌ | ❌ (纯CLI, 无DM概念) | ❌ (纯CLI) | ❌ (CLI/Web, 无DM概念) |
 | Sandbox 隔离 | Agent 执行环境与宿主物理/逻辑隔离——防止文件篡改、命令注入、资源滥用 | ✅ 3 种 | ✅ 5 种 (执行) | ✅ 四层 | ✅ 3 种 | ❓ | ✅ 四层sandbox(bwrap/Seatbelt/macOS runtime) | ✅ Landlock内核级LSM+bwrap | ✅ containers 包 |
-| 工具白名单 | 按 Sandbox 类型限制 Agent 可使用的工具——如禁止非受信 session 使用 Browser/Cron | ✅ Allow/Deny | ⚠️ 文件权限 | ✅ 四层控制 | ✅ Guardrails | ❓ | ✅ bashPermissions + Tool Permission 层 | ❓ | ✅ plan Agent 只读 |
+| 工具白名单 | 按 Sandbox 类型限制 Agent 可使用的工具——如禁止非受信 session 使用 Browser/Cron | ✅ Allow/Deny | ⚠️ 文件权限 | ✅ 四层控制 | ✅ Guardrails | ❓ | ✅ bashPermissions + Tool Permission 层 | ❓ | ✅ allow/deny/ask + DB持久化 |
 | SSRF 防护 | 防止 Agent 被诱导访问内网服务（如 `http://169.254.169.254/`），阻断横向移动攻击 | ✅ ssrf-policy | ❌ | ❌ | ✅ website_blocklist | ❓ | ✅ Sandbox 网络隔离 (bwrap) | ✅ CODEX_SANDBOX_NETWORK_DISABLED | ❓ |
 | 威胁检测 | 运行时检测恶意行为模式（如异常 Shell 命令序列），主动告警或阻断 | ❌ | ❌ | ❌ | ✅ Tirith | ❓ | ✅ SandboxDoctorSection 诊断 | ❓ | ❓ |
 | Vault/Secret | API Key 等敏感凭证的加密存储、轮换和绑定——防止密钥泄露和硬编码 | ⚠️ secret-ref | ❌ | ❌ | ⚠️ .env + auth.json | ❓ | ❓ (Anthropic API key 管理, 推断: 本地加密) | ❓ | ✅ identity 包 |
 | 审计日志 | 完整记录 Agent 的所有操作（谁/何时/做了什么/结果），支持合规审计和事后溯源 | ❌ | ❌ | ❌ | ✅ hermes_logging | ❓ | ✅ sessionStorage 完整持久化 (含 transcript) | ❓ | ❓ |
 | 多租户隔离 | 租户级资源配额 + 配置分离 + 数据隔离——企业级 CMA 的核心需求。当前所有产品均为 session/user 级隔离，无真正租户 | ❌ 无 tenant 概念 | ❌ 无 tenant 概念 | ⚠️ user_id 级 + K3s Pod | ❌ 单租户架构 | ❓ 闭源 | ❌ 本地单用户 | ❌ 本地单用户 | ❌ 本地单用户 |
-| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **4** | **2** |
-| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 | 四层sandbox+BashPermission+SandboxDoctor | Landlock内核级LSM+Guardian审批+bwrap容器 | plan只读+bash权限提问 |
+| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **4** | **3** |
+| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 | 四层sandbox+BashPermission+SandboxDoctor | Landlock内核级LSM+Guardian审批+bwrap容器 | allow/deny/ask三级权限+DB持久化+Server Auth+Fence |
 
 #### D5: 持久化与记忆系统
 
@@ -325,7 +325,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Cursor SDK | 0×0.30 | 2×0.15 | 2×0.10 | 1×0.20 | 1×0.20 | 2×0.05 | **1.00** |
 | Claude Code | 2×0.30 | 4×0.15 | 4×0.10 | 4×0.20 | 4×0.20 | 4×0.05 | **3.40** |
 | Codex | 1×0.30 | 3×0.15 | 3×0.10 | 4×0.20 | 3×0.20 | 2×0.05 | **2.55** |
-| OpenCode | 2×0.30 | 3×0.15 | 3×0.10 | 2×0.20 | 2×0.20 | 4×0.05 | **2.35** |
+| OpenCode | 3×0.30 | 3×0.15 | 3×0.10 | 3×0.20 | 2×0.20 | 4×0.05 | **2.85** |
 
 **S2: 企业 Agent 平台**
 
@@ -338,7 +338,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Cursor SDK | 0×0.10 | 2×0.20 | 2×0.25 | 1×0.30 | 1×0.10 | 2×0.05 | **1.35** |
 | Claude Code | 2×0.10 | 4×0.20 | 4×0.25 | 4×0.30 | 4×0.10 | 4×0.05 | **3.80** |
 | Codex | 1×0.10 | 3×0.20 | 3×0.25 | 4×0.30 | 3×0.10 | 2×0.05 | **3.05** |
-| OpenCode | 2×0.10 | 3×0.20 | 3×0.25 | 2×0.30 | 2×0.10 | 4×0.05 | **2.55** |
+| OpenCode | 3×0.10 | 3×0.20 | 3×0.25 | 3×0.30 | 2×0.10 | 4×0.05 | **2.95** |
 
 **S3: 开发者 Agent SDK**
 
@@ -351,7 +351,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Cursor SDK | — | 2×0.30 | 2×0.30 | 1×0.10 | 1×0.05 | 2×0.25 | **1.80** |
 | Claude Code | — | 4×0.30 | 4×0.30 | 4×0.10 | 4×0.05 | 4×0.25 | **4.00** |
 | Codex | — | 3×0.30 | 3×0.30 | 4×0.10 | 3×0.05 | 2×0.25 | **2.85** |
-| OpenCode | — | 3×0.30 | 3×0.30 | 2×0.10 | 2×0.05 | 4×0.25 | **3.10** |
+| OpenCode | — | 3×0.30 | 3×0.30 | 3×0.10 | 2×0.05 | 4×0.25 | **3.20** |
 
 ### B.3.4 场景排名汇总
 
@@ -360,11 +360,11 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 ─────────────────        ──────────────────         ──────────────────
 1. Hermes Agent 3.60     1. Claude Code   3.80       1. Claude Code   4.00
 2. Claude Code  3.40     2. Hermes Agent  3.40       2. Hermes Agent  3.80
-3. OpenClaw     3.05     3. DeerFlow 2.0  3.10       3. OpenClaw      3.40
-4. DeerFlow 2.0 2.95     4. Codex         3.05       4. DeerFlow 2.0  3.25
-5. Codex        2.55     5. OpenClaw      3.00       5. OpenCode      3.10
-6. Deep Agents  2.35     6. Deep Agents   2.55       6. Codex         2.85
-6. OpenCode     2.35     6. OpenCode      2.55       7. Deep Agents   2.80
+3. OpenClaw     3.05     3. DeerFlow 2.0  3.10       3. OpenCode      3.20
+4. DeerFlow 2.0 2.95     4. Codex         3.05       4. OpenClaw      3.40
+5. OpenCode     2.85     5. OpenCode      2.95       5. DeerFlow 2.0  3.25
+5. Codex        2.55     5. OpenClaw      3.00       6. Codex         2.85
+6. Deep Agents  2.35     6. Deep Agents   2.55       7. Deep Agents   2.80
 8. Cursor SDK   1.00     8. Cursor SDK    1.35       8. Cursor SDK    1.80
 ```
 
@@ -379,10 +379,9 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 | **1** | **Claude Code** | **3.67** | 开发SDK(S3#1) / 企业平台(S2#1) | 闭源 + 单 vendor (仅 Anthropic API) |
 | **1** | **Hermes Agent** | **3.67** | 全场景领先 | 多租户缺失（沙箱 task_id 全局共享） |
 | 3 | OpenClaw | 3.17 | 个人助手(S1#3) / 开发SDK(S3#3) | 无多租户，D5记忆系统偏弱 |
-| 4 | DeerFlow 2.0 | 3.00 | 企业平台(S2#3) / 开发 SDK | IM 渠道数有限 (6 个) |
-| 5 | OpenCode | 2.67 | 开源编码 Agent | 无公开 Benchmark, 多能力推断 |
-| 6 | Deep Agents | 2.50 | 开发 SDK (编排最强) | 无独立运行时，不适合个人/企业场景 |
-| 7 | Codex | 2.67 | 轻量终端编码 Agent | 单 vendor (仅 OpenAI) |
+| 4 | DeerFlow 2.0 / OpenCode | 3.00 | 企业平台/全栈开发 | DeerFlow K3s 接近多租户, OpenCode 全栈最均匀 |
+| 6 | Codex | 2.67 | 轻量终端编码 Agent | 单 vendor (仅 OpenAI) |
+| 7 | Deep Agents | 2.50 | 开发 SDK (编排最强) | 无独立运行时，不适合个人/企业场景 |
 | 8 | Cursor SDK | 1.33 | Cursor IDE 生态内 | 闭源、不可审计、无通信层 |
 
 ### B.4.2 针对内部选型「OpenClaw vs Hermes Agent」的结论
