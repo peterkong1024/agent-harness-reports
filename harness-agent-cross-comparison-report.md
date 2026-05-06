@@ -190,11 +190,11 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 |------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
 | **D1. 通信广度** | ████ 4 | ██ 1 | ███ 3 | ████ 4 | █ 0 | ██ 2 | █ 1 | ██ 2 |
 | **D2. 执行深度** | ███ 3 | ██ 2 | ████ 4 | ████ 4 | ██ 2 | ████ 4 | ███ 3 | ███ 3 |
-| **D3. 任务编排** | ████ 4 | ████ 4 | ███ 3 | ████ 4 | ██ 2 | ████ 4★ | ██ 2 | ███ 3 |
-| **D4. 安全隔离** | ██ 2 | ██ 2 | ███ 3 | ██ 2 | █ 1 | ████ 4 | ███ 3 | ██ 2 |
-| **D5. 记忆系统** | ██ 2 | ███ 3 | ██ 2 | ████ 4 | █ 1 | ████ 4 | ██ 2 | ██ 2 |
+| **D3. 任务编排** | ████ 4 | ████ 4 | ███ 3 | ████ 4 | ██ 2 | ████ 4★ | ███ 3 | ███ 3 |
+| **D4. 安全隔离** | ██ 2 | ██ 2 | ███ 3 | ██ 2 | █ 1 | ████ 4 | ████ 4 | ██ 2 |
+| **D5. 记忆系统** | ██ 2 | ███ 3 | ██ 2 | ████ 4 | █ 1 | ████ 4 | ███ 3 | ██ 2 |
 | **D6. 扩展生态** | ████ 4 | ███ 3 | ███ 3 | ████ 4 | ██ 2 | ████ 4 | ██ 2 | ████ 4 |
-| **平均分** | **3.17** | **2.50** | **3.00** | **3.67** | **1.33** | **3.67** | **2.17** | **2.67** |
+| **平均分** | **3.17** | **2.50** | **3.00** | **3.67** | **1.33** | **3.67** | **2.67** | **2.67** |
 | **社区规模** | 368k ★ | 22k ★ | 64k ★ | 132k ★ | 33k ★ | 泄露分析 | 80k ★ | 155k ★ |
 
 > ★ Claude Code D3 实际能力超越 4 分体系（三套 Multi-Agent 并存），但评分体系上限为 4。
@@ -221,8 +221,8 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Shell 执行 | Agent 执行系统命令的核心能力——编译代码、安装依赖、运行脚本、操作进程 | ✅ | ✅ (120s timeout) | ✅ (虚拟路径翻译) | ✅ (3 种 container) | ✅ | ✅ Shell.ts / bwrap | ✅ Rust Shell | ✅ Shell |
 | 文件操作 | Agent 读写文件的编辑器级能力——精确替换字符串、自动创建目录、防止并发写冲突 | ✅ | ✅ (6 种 Backend) | ✅ (FileOpLock) | ✅ | ✅ | ✅ 文件操作 (推断: 完整) | ✅ Rust 文件操作 | ✅ 文件操作 |
 | Browser | Agent 操控真实浏览器——模拟点击、截图分析、表单填写、动态内容抓取 | ✅ Playwright | ❌ | ❌ | ✅ | ❌ | ❌ (纯CLI) | ❌ | ❌ |
-| Sandbox 后端 | 决定 Agent 的执行隔离级别——Docker(进程级)、SSH(主机级)、Daytona(Serverless) | Docker/SSH/OpenShell (3) | 5 种 (State/FS/Shell/Store/Composite) | 四层隔离模式 | Docker/SSH/Daytona (3) | 局部 (闭源) | bwrap + Seatbelt + macOS runtime (3) | Seatbelt + bwrap (2) | containers 包 (推断: Docker) |
-| ACP 跨 Agent | Agent 可调用外部 Agent (Claude Code/Codex) 作为子执行器，复用已有 Agent 生态 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ Swarm / Remote 模式 | ❓ | ❓ |
+| Sandbox 后端 | 决定 Agent 的执行隔离级别——Docker(进程级)、SSH(主机级)、Daytona(Serverless) | Docker/SSH/OpenShell (3) | 5 种 (State/FS/Shell/Store/Composite) | 四层隔离模式 | Docker/SSH/Daytona (3) | 局部 (闭源) | bwrap + Seatbelt + macOS runtime (3) | Landlock + bwrap (2) | containers 包 (推断: Docker) |
+| ACP 跨 Agent | Agent 可调用外部 Agent (Claude Code/Codex) 作为子执行器，复用已有 Agent 生态 | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ Swarm / Remote 模式 | ✅ | ❓ |
 | Git 集成 | Agent 自动 git commit/checkpoint——每次操作可回滚，形成可审计的操作历史 | ❌ | ❌ | ❌ | ✅ Checkpoint | ✅ git-core | ❓ (推断: 含 git 工具) | ❓ | ❓ |
 | 虚拟路径翻译 | Agent 在沙箱中看到的路径与宿主真实路径自动映射，安全隔离同时保持文件操作语义一致 | ❌ | ❌ | ✅ 自动翻译 | ❌ | ❌ | ❓ | ❓ | ❓ |
 | 沙箱生命周期 | 沙箱的创建/复用/销毁策略——是否延迟创建(lazy)、同 Thread 复用、自动清理、支持外置 Provider 接入 | mode(off/non-main/all)+scope(agent/session/shared)+CLI(recreate/list/explain) | 5 Provider 协议化 | ✅ acquire/release/shutdown+lazy_init+Thread复用+shutdown() | 6 Backend + daemon 空闲清理 + persistent 开关 | ❓ 闭源 | ✅ cleanupAfterCommand + SandboxManager | ❓ (Seatbelt 进程级, 推断: 命令结束即清理) | ❓ |
@@ -233,30 +233,30 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK |
 |------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|
-| SubAgent 委派 | 复杂任务自动拆解为子任务分派给独立子Agent，每个子Agent有独立上下文和工具集 | ✅ sessions_spawn + subagent registry | ✅ 声明式/预编译/远程 | ✅ 双线程池(3+3) | ✅ delegate_task | ✅ customSubagents | ✅ SubAgent+Coordinator+Swarm 三套 | ❓ (agent-graph-store 暗示) | ✅ @general subagent |
+| SubAgent 委派 | 复杂任务自动拆解为子任务分派给独立子Agent，每个子Agent有独立上下文和工具集 | ✅ sessions_spawn + subagent registry | ✅ 声明式/预编译/远程 | ✅ 双线程池(3+3) | ✅ delegate_task | ✅ customSubagents | ✅ SubAgent+Coordinator+Swarm 三套 | ✅ codex_delegate.rs SubAgentSource | ✅ @general subagent |
 | 并行执行 | 多个子Agent同时执行互不依赖的子任务，总耗时 = max(子任务耗时) 而非 sum | ✅ parallel subagent + grouped results | ✅ AsyncSubAgent | ✅ MAX=3 | ✅ max=3 | ❓ | ✅ Swarm teammates 并行 | ❓ | ❓ (推断: 串行) |
 | Plan/Todo | Agent 处理 3+ 步骤任务时自动创建 Todo 列表并实时更新进度，用户可跟踪任务进展 | ✅ update_plan tool (experimental, opt-in) | ✅ TodoListMiddleware | ✅ TodoListMiddleware | ❌ | ❌ | ✅ TaskCreate/TaskStop 工具 | ❓ | ❓ |
 | Loop 检测 | 当 Agent 陷入死循环（反复调用同一工具无进展）时自动检测并强制终止，防止无限消耗 Token | ✅ tools.loopDetection: + detectors(3种) + circuitBreaker + postCompactionGuard | ✅ PatchToolCalls | ✅ LoopDetectionMW | ✅ tool_loop_guardrails | ❓ | ✅ compact 压缩机制 (推断: 含 loop 检测) | ❓ | ❓ |
 | 上下文压缩 | 对话 Token 接近模型上限时自动压缩历史消息为摘要，避免因上下文溢出导致任务中断 | ✅ auto-compaction + midTurnPrecheck + retry + notifier | ✅ 自动压缩(85%触发) | ❌ | ✅ 自动压缩(50%触发) | ❓ | ✅ compact + hooks 回调 | ❓ | ❓ |
 | Middleware/Agent 引擎 | 管道化处理请求的中间件/引擎层数——越多代表请求处理越精细 | pi-embedded-runner (嵌入自有引擎) | 13 层 | 18 层 (完整) | N/A (自有Loop) | ❓ | QueryEngine (六层架构统一内核) | agent-graph-store (图状态机) | ❓ (monorepo, 推断: 自有引擎) |
 | 工具调用恢复 | 工具调用失败后自动 patch/重试/降级，非简单报错给用户——提升长任务成功率 | ✅ orphan recovery + compaction retry + tool-result guard | ✅ PatchToolCalls | ✅ LoopDetection hard stop | ✅ Guardrails hard_stop | ❓ | ✅ StreamingToolExecutor (推断: 含重试) | ❓ | ❓ |
-| **得分** | | **4** | **4** | **3** | **4** | **2** | **4★** | **2** | **3** |
-| 得分依据 | | SubAgent+Loop+Compaction+Plan | 13层MW+3形态SubAgent+压缩 | 18层MW+双线程池+Loop检测 | Guardrails+压缩+SubAgent+Budget | 闭源无法验证 | 三套Multi-Agent超越评分体系 | agent-graph-store暗示编排但无显式SubAgent | build/plan/general三种Agent+子Agent |
+| **得分** | | **4** | **4** | **3** | **4** | **2** | **4★** | **3** | **3** |
+| 得分依据 | | SubAgent+Loop+Compaction+Plan | 13层MW+3形态SubAgent+压缩 | 18层MW+双线程池+Loop检测 | Guardrails+压缩+SubAgent+Budget | 闭源无法验证 | 三套Multi-Agent超越评分体系 | codex_delegate.rs SubAgent+agent-graph-store 图拓扑 | build/plan/general三种Agent+子Agent |
 
 #### D4: 安全与多租户隔离
 
 | 特征 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|---------|:--------:|:-----------:|:------------:|:------------:|:----------:|:-----------:|:-----:|:-------:|
 | DM 配对 | 未知用户首次 DM 时需手动审批配对码，防止恶意用户直接操控 Agent | ✅ pairing 默认 | ❌ | ❌ | ✅ Gateway DM | ❌ | ❌ (纯CLI, 无DM概念) | ❌ (纯CLI) | ❌ (纯CLI) |
-| Sandbox 隔离 | Agent 执行环境与宿主物理/逻辑隔离——防止文件篡改、命令注入、资源滥用 | ✅ 3 种 | ✅ 5 种 (执行) | ✅ 四层 | ✅ 3 种 | ❓ | ✅ 四层sandbox(bwrap/Seatbelt/macOS runtime) | ✅ Seatbelt+bwrap OS级沙箱 | ✅ containers 包 |
+| Sandbox 隔离 | Agent 执行环境与宿主物理/逻辑隔离——防止文件篡改、命令注入、资源滥用 | ✅ 3 种 | ✅ 5 种 (执行) | ✅ 四层 | ✅ 3 种 | ❓ | ✅ 四层sandbox(bwrap/Seatbelt/macOS runtime) | ✅ Landlock内核级LSM+bwrap | ✅ containers 包 |
 | 工具白名单 | 按 Sandbox 类型限制 Agent 可使用的工具——如禁止非受信 session 使用 Browser/Cron | ✅ Allow/Deny | ⚠️ 文件权限 | ✅ 四层控制 | ✅ Guardrails | ❓ | ✅ bashPermissions + Tool Permission 层 | ❓ | ✅ plan Agent 只读 |
 | SSRF 防护 | 防止 Agent 被诱导访问内网服务（如 `http://169.254.169.254/`），阻断横向移动攻击 | ✅ ssrf-policy | ❌ | ❌ | ✅ website_blocklist | ❓ | ✅ Sandbox 网络隔离 (bwrap) | ✅ CODEX_SANDBOX_NETWORK_DISABLED | ❓ |
 | 威胁检测 | 运行时检测恶意行为模式（如异常 Shell 命令序列），主动告警或阻断 | ❌ | ❌ | ❌ | ✅ Tirith | ❓ | ✅ SandboxDoctorSection 诊断 | ❓ | ❓ |
 | Vault/Secret | API Key 等敏感凭证的加密存储、轮换和绑定——防止密钥泄露和硬编码 | ⚠️ secret-ref | ❌ | ❌ | ⚠️ .env + auth.json | ❓ | ❓ (Anthropic API key 管理, 推断: 本地加密) | ❓ | ✅ identity 包 |
 | 审计日志 | 完整记录 Agent 的所有操作（谁/何时/做了什么/结果），支持合规审计和事后溯源 | ❌ | ❌ | ❌ | ✅ hermes_logging | ❓ | ✅ sessionStorage 完整持久化 (含 transcript) | ❓ | ❓ |
 | 多租户隔离 | 租户级资源配额 + 配置分离 + 数据隔离——企业级 CMA 的核心需求。当前所有产品均为 session/user 级隔离，无真正租户 | ❌ 无 tenant 概念 | ❌ 无 tenant 概念 | ⚠️ user_id 级 + K3s Pod | ❌ 单租户架构 | ❓ 闭源 | ❌ 本地单用户 | ❌ 本地单用户 | ❌ 本地单用户 |
-| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **3** | **2** |
-| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 | 四层sandbox+BashPermission+SandboxDoctor | Seatbelt+bwrap OS级沙箱+网络禁用 | plan只读+bash权限提问 |
+| **得分** | | **2** | **2** | **3** | **2** | **1** | **4** | **4** | **2** |
+| 得分依据 | | DM+SSRF OK，但无租户+沙箱二分粗 | 仅文件权限+Sandbox，缺 DM/SSRF/租户 | user_id 隔离 + K3s Pod 模式最接近多租户 | 安全工具全但沙箱共享+单租户 | 闭源安全不可审计，降级 | 四层sandbox+BashPermission+SandboxDoctor | Landlock内核级LSM+Guardian审批+bwrap容器 | plan只读+bash权限提问 |
 
 #### D5: 持久化与记忆系统
 
@@ -271,8 +271,8 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Skills 自动管理 | Agent 从经验中自动创建/改进 Skills，无人值守地优化自身能力——自我完善的闭环 | ❌ | ❌ | ❌ | ✅ Curator 自动 prune | ❌ |
 | 自我完善闭环 | 创建 → 使用 → 改进 → 归档的完整生命周期——Agent 越用越强而非越用越旧 | ❌ | ❌ | ❌ | ✅ 创建→使用→改进 | ❌ | ❌ (推断: 无) | ❌ | ❌ |
 | Memory 多用户隔离 | 不同用户间的 Memory 是否隔离——Mem0 按 user_id 过滤、Honcho 按 session_key、文件按 workspace 路径 | ✅ per-agent workspace 文件隔离 | ❌ 无 user 概念 | ✅ per-user_id 路径隔离 | ✅ Mem0 user_id filter + Honcho session_key | ❓ 闭源 | ❌ 本地单用户 | ❌ 本地单用户 | ❌ 本地单用户 |
-| **得分** | | **2** | **3** | **2** | **4** | **1** | **4** | **2** | **2** |
-| 得分依据 | | 文件记忆+Vector+per-agent 隔离 | AGENTS.md+压缩，缺搜索/Curator/多用户 | 基础持久化+user_id Memory 隔离 | 全功能唯一：FTS5+Curator+自我完善+user_id Memory | 仅 SQLite 基础存储 | 五层记忆(sessionStorage+memdir+SessionMemory+compact+hooks) | agent-graph-store 持久化但无分层记忆 | SQLite+Drizzle+session 基础持久化 |
+| **得分** | | **2** | **3** | **2** | **4** | **1** | **4** | **3** | **2** |
+| 得分依据 | | 文件记忆+Vector+per-agent 隔离 | AGENTS.md+压缩，缺搜索/Curator/多用户 | 基础持久化+user_id Memory 隔离 | 全功能唯一：FTS5+Curator+自我完善+user_id Memory | 仅 SQLite 基础存储 | 五层记忆(sessionStorage+memdir+SessionMemory+compact+hooks) | agent-graph-store+AGENTS.md解析+memories crate | SQLite+Drizzle+session 基础持久化 |
 
 #### D6: 扩展性与生态开放性
 
@@ -324,7 +324,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Deep Agents | 1×0.30 | 2×0.15 | 4×0.10 | 2×0.20 | 3×0.20 | 3×0.05 | **2.35** |
 | Cursor SDK | 0×0.30 | 2×0.15 | 2×0.10 | 1×0.20 | 1×0.20 | 2×0.05 | **1.00** |
 | Claude Code | 2×0.30 | 4×0.15 | 4×0.10 | 4×0.20 | 4×0.20 | 4×0.05 | **3.40** |
-| Codex | 1×0.30 | 3×0.15 | 2×0.10 | 3×0.20 | 2×0.20 | 2×0.05 | **2.05** |
+| Codex | 1×0.30 | 3×0.15 | 3×0.10 | 4×0.20 | 3×0.20 | 2×0.05 | **2.55** |
 | OpenCode | 2×0.30 | 3×0.15 | 3×0.10 | 2×0.20 | 2×0.20 | 4×0.05 | **2.35** |
 
 **S2: 企业 Agent 平台**
@@ -337,7 +337,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Deep Agents | 1×0.10 | 2×0.20 | 4×0.25 | 2×0.30 | 3×0.10 | 3×0.05 | **2.55** |
 | Cursor SDK | 0×0.10 | 2×0.20 | 2×0.25 | 1×0.30 | 1×0.10 | 2×0.05 | **1.35** |
 | Claude Code | 2×0.10 | 4×0.20 | 4×0.25 | 4×0.30 | 4×0.10 | 4×0.05 | **3.80** |
-| Codex | 1×0.10 | 3×0.20 | 2×0.25 | 3×0.30 | 2×0.10 | 2×0.05 | **2.40** |
+| Codex | 1×0.10 | 3×0.20 | 3×0.25 | 4×0.30 | 3×0.10 | 2×0.05 | **3.05** |
 | OpenCode | 2×0.10 | 3×0.20 | 3×0.25 | 2×0.30 | 2×0.10 | 4×0.05 | **2.55** |
 
 **S3: 开发者 Agent SDK**
@@ -350,7 +350,7 @@ Step 4: 成熟度定义 — 为每个维度定义 0-4 级评分标准
 | Deep Agents | — | 2×0.30 | 4×0.30 | 2×0.10 | 3×0.05 | 3×0.25 | **2.80** |
 | Cursor SDK | — | 2×0.30 | 2×0.30 | 1×0.10 | 1×0.05 | 2×0.25 | **1.80** |
 | Claude Code | — | 4×0.30 | 4×0.30 | 4×0.10 | 4×0.05 | 4×0.25 | **4.00** |
-| Codex | — | 3×0.30 | 2×0.30 | 3×0.10 | 2×0.05 | 2×0.25 | **2.40** |
+| Codex | — | 3×0.30 | 3×0.30 | 4×0.10 | 3×0.05 | 2×0.25 | **2.85** |
 | OpenCode | — | 3×0.30 | 3×0.30 | 2×0.10 | 2×0.05 | 4×0.25 | **3.10** |
 
 ### B.3.4 场景排名汇总
@@ -361,10 +361,10 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 1. Hermes Agent 3.60     1. Claude Code   3.80       1. Claude Code   4.00
 2. Claude Code  3.40     2. Hermes Agent  3.40       2. Hermes Agent  3.80
 3. OpenClaw     3.05     3. DeerFlow 2.0  3.10       3. OpenClaw      3.40
-4. DeerFlow 2.0 2.95     4. OpenClaw      3.00       4. DeerFlow 2.0  3.25
-5. Deep Agents  2.35     5. Deep Agents   2.55       5. OpenCode      3.10
-5. OpenCode     2.35     5. OpenCode      2.55       6. Deep Agents   2.80
-7. Codex        2.05     7. Codex         2.40       7. Codex         2.40
+4. DeerFlow 2.0 2.95     4. Codex         3.05       4. DeerFlow 2.0  3.25
+5. Codex        2.55     5. OpenClaw      3.00       5. OpenCode      3.10
+6. Deep Agents  2.35     6. Deep Agents   2.55       6. Codex         2.85
+6. OpenCode     2.35     6. OpenCode      2.55       7. Deep Agents   2.80
 8. Cursor SDK   1.00     8. Cursor SDK    1.35       8. Cursor SDK    1.80
 ```
 
@@ -382,7 +382,7 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 | 4 | DeerFlow 2.0 | 3.00 | 企业平台(S2#3) / 开发 SDK | IM 渠道数有限 (6 个) |
 | 5 | OpenCode | 2.67 | 开源编码 Agent | 无公开 Benchmark, 多能力推断 |
 | 6 | Deep Agents | 2.50 | 开发 SDK (编排最强) | 无独立运行时，不适合个人/企业场景 |
-| 7 | Codex | 2.17 | 轻量终端编码 Agent | 单 vendor (仅 OpenAI), 无 Multi-Agent |
+| 7 | Codex | 2.67 | 轻量终端编码 Agent | 单 vendor (仅 OpenAI) |
 | 8 | Cursor SDK | 1.33 | Cursor IDE 生态内 | 闭源、不可审计、无通信层 |
 
 ### B.4.2 针对内部选型「OpenClaw vs Hermes Agent」的结论
@@ -458,9 +458,9 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 1. **评分基于静态分析**: 所有数据来自源码、文档和配置文件，非运行时 Benchmark
 2. **无性能对比**: Token 消耗、延迟、吞吐量未测量（需要统一 Benchmark 环境）
 3. **版本时效性**: 报告基于 2026-05-06 的仓库状态，产品快速迭代中
-4. **闭源/分析不透明**: Claude Code (泄露源码分析, 覆盖率 ~40%)、Cursor SDK (闭源)、OpenCode/Codex (推断比例偏高) 的评分存在推断成分
+4. **闭源/分析不透明**: Cursor SDK (闭源)、OpenCode (推断比例偏高 ~50%) 的评分存在推断成分。Claude Code 和 Codex 已于 2026-05-06 完成源码级重写 (覆盖率 ~80-95%)
 5. **场景权重主观性**: 三个场景的权重分配基于典型需求推断，实际项目可能有不同侧重
-6. **Coding Agent 产品评分基于较浅分析**: Claude Code/Codex/OpenCode 仅基于静态文档阅读，未做源码级深度验证
+6. **Coding Agent 产品评分**: Claude Code 和 Codex 已于 2026-05-06 完成源码级验证并修正。OpenCode 评分基于浅分析，待源码级验证
 
 ---
 
@@ -470,7 +470,7 @@ S1: 个人 AI 助手          S2: 企业 Agent 平台         S3: 开发者 Agen
 |:------:|------|------|
 | P0 | 运行时 Benchmark | 在统一环境中跑三个场景的端到端测试，验证静态分析结论 |
 | P0 | 深度 PoC | 对 Top 3 产品 (Claude Code / Hermes Agent / DeerFlow 2.0) 进行 2 周 PoC |
-| P1 | Coding Agent 深挖 | Claude Code/Codex/OpenCode 的源码级验证（当前3份报告推断比例偏高） |
+| P1 | Coding Agent 深挖 | OpenCode 的源码级验证（Claude Code/Codex 已完成重写） |
 | P1 | CMA 概念对齐 | 基于选型结果，执行 Phase 3 扩展 — CMA 九大概念对齐 |
 | P1 | 社区健康度评估 | 分析 Issue 关闭率、PR merge 速度、贡献者多样性 |
 | P2 | SWE-bench 跑分 | 对 Top 4 Coding Agent 产品在 SWE-bench 上统一跑分 |
