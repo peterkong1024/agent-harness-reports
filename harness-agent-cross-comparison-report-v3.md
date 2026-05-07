@@ -26,13 +26,13 @@
 | SubAgent 委派 | 拆解为独立子Agent | ✅ 机制: sessions_spawn+registry 管理子会话。效果: 多subagent独立workspace | ✅ 机制: SubGraphAgent三种形态(声明式/预编译/远程)。效果: 最灵活定义方式 | ✅ 机制: 双线程池(3+3)并发调度。效果: 主副线程池隔离 | ✅ 机制: delegate_task tool 支持 leaf/orchestrator。效果: 独立工具集+上下文 | ⚠️ 机制: customSubagents配置。效果: IDE内自定义(闭源) | ✅ 机制: 6 built-in+3套并行(SubAgent/Coordinator/Swarm)。效果: 最丰富体系 | ✅ 机制: codex_delegate.rs SubAgentSource+图拓扑。效果: 图状非树状关系 | ✅ 机制: agent mode subagent/primary/all。效果: 三级角色+per-Agent permission |
 | 并行执行 | 互不依赖任务同时执行 | ✅ 机制: parallel subagent+grouped results。效果: 总耗时=max(子任务) | ✅ 机制: AsyncSubAgent+LangGraph并行节点。效果: 图式任意拓扑 | ✅ 机制: MAX=3并发限制。效果: 最多3并行 | ✅ 机制: delegate_task max=3。效果: 最多3并行 | ❓ | ✅ 机制: Swarm teammates全并行。效果: Swarm模式所有teammate并发 | ✅ 机制: tokio::spawn 异步event/op通道。效果: 多子Agent异步并发 | ❌ |
 | Plan/Todo | 自动创建待办跟踪进度 | ✅ 机制: update_plan tool(experimental)。效果: 需显式opt-in开启 | ✅ 机制: TodoListMiddleware(MW栈第6层)。效果: 自动生成更新 | ✅ 机制: TodoListMiddleware(MW栈第5层)。效果: 自动Todo | ❌ | ❌ | ✅ 机制: TaskCreate/TaskStop工具。效果: Agent自主管理任务 | ✅ 机制: 三层体系(Goal+PlanMode+TodoList)。效果: 持久化目标+回合清单+协作planning | ❌ |
-| Loop 检测 | 防止陷入死循环 | ✅ 机制: 3种detector+circuitBreaker+postCompactionGuard。效果: 三级检测+熔断 | ✅ 机制: PatchToolCalls自动修复。效果: 修复即破坏循环 | ✅ 机制: LoopDetectionMW独立中间件。效果: 硬中断循环 | ✅ 机制: tool_loop_guardrails。效果: Guardrails内置检测 | ❓ 闭源 | ✅ 机制: autoCompact circuit breaker(MAX=3连续失败)。效果: 跳闸后停止, 每天节省~250K API调用 | ❓ | ✅ 机制: DOOM_LOOP=3+continue_loop_on_deny+maxSteps。效果: 5层防护 |
+| Loop 检测 | 防止陷入死循环 | ✅ 机制: 3种detector+circuitBreaker+postCompactionGuard。效果: 三级检测+熔断 | ✅ 机制: PatchToolCalls自动修复。效果: 修复即破坏循环 | ✅ 机制: LoopDetectionMW独立中间件。效果: 硬中断循环 | ✅ 机制: tool_loop_guardrails。效果: Guardrails内置检测 | ❓ 闭源 | ✅ 机制: autoCompact circuit breaker(MAX=3连续失败)。效果: 跳闸后停止, 每天节省~250K API调用 | ❌ 机制: 仅GuardianRejectionCircuitBreaker(拒绝限流器,非工具循环检测)。效果: turn loop无界运行,注释称"as long as compaction works...shouldn't worry" | ✅ 机制: DOOM_LOOP=3+continue_loop_on_deny+maxSteps。效果: 5层防护 |
 | 上下文压缩 | Token超限自动压缩 | ✅ 机制: auto-compaction+midTurnPrecheck+retry+notifier。效果: 自动触发+中途检查+重试 | ✅ 机制: SummarizationMW(85%阈值触发)。效果: 保留10%最近消息 | ✅ 机制: DeerFlowSummarizationMiddleware(enabled=false默认)。效果: 启用后摘要+skill保护 | ✅ 机制: compressor自动触发(50%阈值)。效果: 半自动压缩 | ❓ 闭源 | ✅ 机制: compact+hooks回调。效果: 可编程压缩, threshold=contextWindow-13000 | ✅ 机制: compact_remote v1+v2远程压缩。效果: 双策略迭代 | ✅ 机制: isOverflow+SUMMARY_TEMPLATE+prune。效果: tail_turns保留原文+旧消息摘要 |
 | 异常重启恢复 | crash后自动/手动恢复 | ✅ 机制: Lobster引擎检查点+SQLite task_registry+restart-sentinel。效果: 自动扫描interrupted任务恢复 | ✅ 机制: LangGraph Checkpointer(SqliteSaver)。效果: graph状态检查点, 断点续跑 | ⚠️ 机制: 依赖LangGraph Checkpointer(SQLite/PG)。效果: 无显式crash recovery命令 | ✅ 机制: batch_runner checkpoint+SQLite FTS5。效果: batch模式恢复+session持久化 | 🔒 闭源(Cloud Agent支持resume) | ✅ 机制: /resume(Fuse.js模糊)+--continue+远程URL恢复。效果: 模糊匹配+远程+CLI续跑 | ⚠️ 机制: TurnState+agent-graph-store持久化。效果: Session Picker间接恢复 | ⚠️ 机制: retry/revert/run-state三层恢复。效果: 会话级恢复 |
 | 工具调用恢复 | 失败后补丁/重试/降级 | ✅ 机制: orphan recovery+compaction retry+tool-result guard。效果: 孤儿恢复+压缩重试+守卫 | ✅ 机制: PatchToolCalls自动修复参数。效果: 工具调用修复 | ✅ 机制: LoopDetection hard stop即恢复。效果: 硬中断恢复 | ✅ 机制: Guardrails hard_stop。效果: Guardrails干预恢复 | ❓ 闭源 | ✅ 机制: StreamingToolExecutor含重试。效果: 推断支持 | ❓ | ❌ |
 | 对话崩溃恢复 [wl] | 上下文撑爆等恢复 | ✅ 机制: compaction质量守卫+retry+安全margin。效果: auto-summarization含重试+标识符保留 | ✅ 机制: SummarizationMW自动摘要。效果: Token超预算时自动压缩 | ❌ | ⚠️ 机制: max_iterations+budget tracking+checkpoint。效果: 无auto-compaction恢复 | ⚠️ 机制: 受限于IDE宿主上下文限制 | ✅ 机制: auto-compaction+quality guard。效果: 逼近上限时自动压缩 | ⚠️ 机制: 上下文窗口管理+截断。效果: 无显式压缩重试 | ⚠️ 机制: 基础compaction无质量guard。效果: 无重试机制 |
 
-| **得分** | 8子特性 | OC=8 | DA=7.75 | DF=5.25 | HA=6.75 | CS=0.75 | CC=7.75 | CX=5.5 | OP=4.75 |
+| **得分** | 8子特性 | OC=8 | DA=7.75 | DF=5.25 | HA=6.75 | CS=0.75 | CC=7.75 | CX=5.0 | OP=4.75 |
 |------|------|------|------|------|------|------|------|------|------|
 
 ## 2. 记忆系统（数据持久化与存储）
@@ -68,15 +68,15 @@
 | 子特性 | 特征作用 | OpenClaw | Deep Agents | DeerFlow 2.0 | Hermes Agent | Cursor SDK | Claude Code | Codex | OpenCode |
 |------|---------|----------|-------------|--------------|--------------|------------|-------------|-------|----------|
 | 工具白名单 | 限制可调用工具 | ✅ 机制: Allow/Deny per-agent配置。效果: 每Agent独立白名单 | ⚠️ 机制: 文件权限检查(wcmatch.glob)。效果: 仅文件操作 | ✅ 机制: 4层权限+Guardrail AllowlistProvider。效果: Session/Resource/Network级 | ✅ 机制: Guardrails工具拦截。效果: 运行时拦截+循环检测 | 🔒 闭源 | ✅ 机制: bashPermissions+Tool Permission双层。效果: 命令级+工具级 | ✅ 机制: Guardian审批系统。效果: 独立审批子系统 | ✅ 机制: allow/deny/ask三级+DB持久化+pattern match。效果: 精确命令匹配 |
-| SSRF 防护 | 防止访问内网 | ✅ 机制: ssrf-policy中间件。效果: 阻断内网IP | ❌ | ❌ | ✅ 机制: website_blocklist。效果: 黑名单URL | 🔒 闭源 | ✅ 机制: bwrap net namespace网络隔离。效果: 全网络隔离 | ✅ 机制: CODEX_SANDBOX_NETWORK_DISABLED。效果: 全局禁用 | ✅ 机制: FenceMiddleware。效果: 服务端拦截 |
+| SSRF 防护 | 防止访问内网 | ✅ 机制: ssrf-policy中间件。效果: 阻断内网IP | ❌ | ⚠️ 机制: SandboxAuditMiddleware拦截/dev/tcp等bash级网络访问。效果: bash级阻断, 无URL级HTTP过滤 | ✅ 机制: website_blocklist。效果: 黑名单URL | 🔒 闭源 | ✅ 机制: bwrap net namespace网络隔离。效果: 全网络隔离 | ✅ 机制: CODEX_SANDBOX_NETWORK_DISABLED。效果: 全局禁用 | ✅ 机制: FenceMiddleware。效果: 服务端拦截 |
 | 工具审批 | 调用前人工审批(HITL) | ✅ 机制: approval-handler多级+exec-approval+LobsterApprovalWaitState。效果: Tool/Group级+断点热启动+Pending Queue | ✅ 机制: HumanInTheLoopMiddleware per-tool interrupt_on。效果: 每工具独立HITL | ✅ 机制: GuardrailMiddleware(Allowlist/OAP/Custom)。效果: 模式匹配审批 | ✅ 机制: approval.py四级(permanent/session YOLO/gateway/Smart Approvals)。效果: 最细粒度 | 🔒 闭源 | ✅ 机制: bashPermissions+PermissionRule+弹窗审批。效果: 双重审批+UI | ✅ 机制: Guardian独立审批子系统(approve/reject)。效果: 独立审批 | ✅ 机制: allow/deny/ask+pattern+DB持久化。效果: 精确匹配+持久化 |
 | MCP 审批 [wl] | MCP调用人工审批 | ⚠️ 机制: before_tool_call hook+runTrustedToolPolicies统一通道。效果: 非独立MCP通道 | ❌ | ❌ | ❌ | 🔒 闭源 | ⚠️ 机制: MCP作为native tool通过bashPermissions统一。效果: 非独立MCP | ✅ 机制: 三级审批(ACCEPT/ACCEPT_FOR_SESSION/DECLINE)。效果: 唯一独立MCP审批 | ⚠️ 机制: 统一Permission+continue_loop_on_deny。效果: 非独立 |
-| MCP 凭证 | MCP凭证管理 | ✅ 机制: mcp-stdio/transport config+env/headers/secrets per-server。效果: per-server凭证隔离 | ⚠️ 机制: 通过langchain-mcp-adapters桥接。效果: 凭证委托适配器 | ❌ | ✅ 机制: mcp_oauth.py OAuth2.1+PKCE+HermesTokenStorage。效果: 动态注册+持久化token | ⚠️ 机制: 通过扩展机制。效果: 凭证管理依赖扩展 | ✅ 机制: MCP集成含凭证管理 | ✅ 机制: MCP集成含凭证配置 | ✅ 机制: 基础MCP server配置+env凭证 |
+| MCP 凭证 | MCP凭证管理 | ✅ 机制: mcp-stdio/transport config+env/headers/secrets per-server。效果: per-server凭证隔离 | ⚠️ 机制: 通过langchain-mcp-adapters桥接。效果: 凭证委托适配器 | ✅ 机制: McpServerConfig(env+headers)+McpOAuthConfig(OAuth2.0 client_credentials/refresh_token)+$VAR解析+OAuthTokenManager缓存刷新。效果: 三层凭证(env/headers/OAuth) | ✅ 机制: mcp_oauth.py OAuth2.1+PKCE+HermesTokenStorage。效果: 动态注册+持久化token | ⚠️ 机制: 通过扩展机制。效果: 凭证管理依赖扩展 | ✅ 机制: MCP集成含凭证管理 | ✅ 机制: MCP集成含凭证配置 | ✅ 机制: 基础MCP server配置+env凭证 |
 | Skill 审批 [wl] | 技能调用前确认 | ❌ | ✅ 机制: HumanInTheLoopMiddleware interrupt_on含技能。效果: 审批/修改/拒绝 | ❌ | ✅ 机制: skills_guard.py安全扫描(90+威胁模式)+slash_confirm。效果: 信任分级+威胁检测+按钮确认 | ⚠️ 机制: 依赖扩展权限。效果: 非一等特性 | ✅ 机制: Permission系统ask/allow/deny。效果: 含技能调用审批 | ✅ 机制: Permission系统用户确认。效果: 工具调用确认 | ❌ |
 | Agent 隔离 | 同实例多Agent资源隔离 | ✅ 机制: agents.list[] per-agent skills/tools/model。效果: 完全替换非合并, per-agent skillsLimits | ✅ 机制: SubGraphAgent三种形态+per-subagent middleware。效果: 独立配置 | ✅ 机制: custom_agents独立system_prompt/tools/model。效果: per-agent隔离 | ⚠️ 机制: delegate_task子Agent+独立工具集。效果: 无agents.list语法 | 🔒 闭源(Cloud Agent支持) | ✅ 机制: 6 built-in+3套+per-agent worktree。效果: 最丰富Multi-Agent隔离 | ✅ 机制: CodexSpawnArgs全协议+图拓扑。效果: per-agent全配置 | ✅ 机制: Agent mode+per-Agent permission+model。效果: 三级角色 |
-| 审计日志 | 完整记录操作 | ✅ 机制: io.audit.ts双层(config-audit.jsonl+Gateway JSONL)+进程级审计。效果: 前/后hash+inode+uid/gid+备份恢复 | ❌ | ⚠️ 机制: 每日文件夹+JSONL归档。效果: 非实时审计 | ✅ 机制: 3个RotatingFileHandler+RedactingFormatter+30+脱敏+session关联。效果: 实时审计 | 🔒 闭源 | ✅ 机制: sessionStorage完整持久化+transcript。效果: 可重放 | ❓ | ❌ |
+| 审计日志 | 完整记录操作 | ✅ 机制: io.audit.ts双层(config-audit.jsonl+Gateway JSONL)+进程级审计。效果: 前/后hash+inode+uid/gid+备份恢复 | ❌ | ⚠️ 机制: 每日文件夹+JSONL归档。效果: 非实时审计 | ✅ 机制: 3个RotatingFileHandler+RedactingFormatter+30+脱敏+session关联。效果: 实时审计 | 🔒 闭源 | ✅ 机制: sessionStorage完整持久化+transcript。效果: 可重放 | ✅ 机制: RolloutRecorder JSONL持久化(EventMsg/ResponseItem/CompactedItem全量)到~/.codex/sessions/。效果: 每turn持久化, 可重放+审查 | ❌ |
 
-| **得分** | 8子特性 | OC=5.75 | DA=2.75 | DF=2 | HA=5.75 | CS=0.25 | CC=6.25 | CX=4.25 | OP=4.5 |
+| **得分** | 8子特性 | OC=5.75 | DA=2.75 | DF=3.5 | HA=5.75 | CS=0.25 | CC=6.25 | CX=4.75 | OP=4.5 |
 |------|------|------|------|------|------|------|------|------|------|
 
 ## 5. 扩展生态（协议与外部交互）
@@ -121,9 +121,9 @@
 | **1** | **Hermes Agent** | **29.75** | 6.75 | 4.25 | 6.5 | 5.75 | 3 | 1.5 | 2 |
 | **2** | **OpenClaw** | **29.50** | 8 | 4.25 | 5 | 5.75 | 3.5 | 1 | 2 |
 | 3 | Claude Code | 27.50 | 7.75 | 4 | 5.5 | 6.25 | 3 | 0.5 | 0.5 |
-| 4 | Codex | 20.25 | 5.5 | 2.5 | 4 | 4.25 | 1.5 | 0.5 | 2 |
-| 5 | Deep Agents | 20.00 | 7.75 | 3 | 4.5 | 2.75 | 2.5 | 0.5 | 2 |
-| 6 | DeerFlow 2.0 | 20.25 | 5.25 | 2.5 | 5 | 2 | 2.5 | 1 | 2 |
+| 4 | DeerFlow 2.0 | 21.75 | 5.25 | 2.5 | 5 | 3.5 | 2.5 | 1 | 2 |
+| 5 | Codex | 20.25 | 5.0 | 2.5 | 4 | 4.75 | 1.5 | 0.5 | 2 |
+| 6 | Deep Agents | 20.00 | 7.75 | 3 | 4.5 | 2.75 | 2.5 | 0.5 | 2 |
 | 7 | OpenCode | 17.75 | 4.75 | 1.5 | 4 | 4.5 | 3 | 0 | 2 |
 | 8 | Cursor SDK | 4.25 | 0.75 | 0.75 | 1 | 0.25 | 0.75 | 0.5 | 1 |
 
