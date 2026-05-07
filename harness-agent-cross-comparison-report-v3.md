@@ -29,10 +29,10 @@
 | Loop 检测 | 防止陷入死循环 | ✅ 机制: 3种detector+circuitBreaker+postCompactionGuard。效果: 三级检测+熔断 | ✅ 机制: PatchToolCalls自动修复。效果: 修复即破坏循环 | ✅ 机制: LoopDetectionMW独立中间件。效果: 硬中断循环 | ✅ 机制: tool_loop_guardrails。效果: Guardrails内置检测 | ❓ 闭源 | ✅ 机制: autoCompact circuit breaker(MAX=3连续失败)。效果: 跳闸后停止, 每天节省~250K API调用 | ❌ 机制: 仅GuardianRejectionCircuitBreaker(拒绝限流器,非工具循环检测)。效果: turn loop无界运行,注释称"as long as compaction works...shouldn't worry" | ✅ 机制: DOOM_LOOP=3+continue_loop_on_deny+maxSteps。效果: 5层防护 |
 | 上下文压缩 | Token超限自动压缩 | ✅ 机制: auto-compaction+midTurnPrecheck+retry+notifier。效果: 自动触发+中途检查+重试 | ✅ 机制: SummarizationMW(85%阈值触发)。效果: 保留10%最近消息 | ✅ 机制: DeerFlowSummarizationMiddleware(enabled=false默认)。效果: 启用后摘要+skill保护 | ✅ 机制: compressor自动触发(50%阈值)。效果: 半自动压缩 | ❓ 闭源 | ✅ 机制: compact+hooks回调。效果: 可编程压缩, threshold=contextWindow-13000 | ✅ 机制: compact_remote v1+v2远程压缩。效果: 双策略迭代 | ✅ 机制: isOverflow+SUMMARY_TEMPLATE+prune。效果: tail_turns保留原文+旧消息摘要 |
 | 异常重启恢复 | crash后自动/手动恢复 | ✅ 机制: Lobster引擎检查点+SQLite task_registry+restart-sentinel。效果: 自动扫描interrupted任务恢复 | ✅ 机制: LangGraph Checkpointer(SqliteSaver)。效果: graph状态检查点, 断点续跑 | ⚠️ 机制: 依赖LangGraph Checkpointer(SQLite/PG)。效果: 无显式crash recovery命令 | ✅ 机制: batch_runner checkpoint+SQLite FTS5。效果: batch模式恢复+session持久化 | 🔒 闭源(Cloud Agent支持resume) | ✅ 机制: /resume(Fuse.js模糊)+--continue+远程URL恢复。效果: 模糊匹配+远程+CLI续跑 | ⚠️ 机制: TurnState+agent-graph-store持久化。效果: Session Picker间接恢复 | ⚠️ 机制: retry/revert/run-state三层恢复。效果: 会话级恢复 |
-| 工具调用恢复 | 失败后补丁/重试/降级 | ✅ 机制: orphan recovery+compaction retry+tool-result guard。效果: 孤儿恢复+压缩重试+守卫 | ✅ 机制: PatchToolCalls自动修复参数。效果: 工具调用修复 | ✅ 机制: LoopDetection hard stop即恢复。效果: 硬中断恢复 | ✅ 机制: Guardrails hard_stop。效果: Guardrails干预恢复 | ❓ 闭源 | ✅ 机制: StreamingToolExecutor含重试。效果: 推断支持 | ❓ | ❌ |
-| 对话崩溃恢复 [wl] | 上下文撑爆等恢复 | ✅ 机制: compaction质量守卫+retry+安全margin。效果: auto-summarization含重试+标识符保留 | ✅ 机制: SummarizationMW自动摘要。效果: Token超预算时自动压缩 | ❌ | ⚠️ 机制: max_iterations+budget tracking+checkpoint。效果: 无auto-compaction恢复 | ⚠️ 机制: 受限于IDE宿主上下文限制 | ✅ 机制: auto-compaction+quality guard。效果: 逼近上限时自动压缩 | ⚠️ 机制: 上下文窗口管理+截断。效果: 无显式压缩重试 | ⚠️ 机制: 基础compaction无质量guard。效果: 无重试机制 |
+| 工具调用恢复 | 失败后补丁/重试/降级 | ✅ 机制: orphan recovery+compaction retry+tool-result guard。效果: 孤儿恢复+压缩重试+守卫 | ✅ 机制: PatchToolCalls自动修复参数。效果: 工具调用修复 | ✅ 机制: LoopDetection hard stop即恢复。效果: 硬中断恢复 | ✅ 机制: Guardrails hard_stop。效果: Guardrails干预恢复 | ❓ 闭源 | ✅ 机制: StreamingToolExecutor含重试。效果: 推断支持 | ❌ 机制: FunctionCallError::RespondToModel 仅将错误文本注入对话, 模型自行决定重试。传输层重试仅针对WebSocket断开/超时, is_retryable()对工具错误返回false。效果: 无自动恢复 | ❌ |
+| 对话崩溃恢复 [wl] | 上下文撑爆等恢复 | ✅ 机制: compaction质量守卫+retry+安全margin。效果: auto-summarization含重试+标识符保留 | ✅ 机制: SummarizationMW自动摘要。效果: Token超预算时自动压缩 | ⚠️ 机制: SummarizationMiddleware存在但enabled=false(默认)。效果: 启用后含token触发+skill救援, 禁用时上下文溢出直接报错崩溃 | ⚠️ 机制: max_iterations+budget tracking+checkpoint。效果: 无auto-compaction恢复 | ⚠️ 机制: 受限于IDE宿主上下文限制 | ✅ 机制: auto-compaction+quality guard。效果: 逼近上限时自动压缩 | ⚠️ 机制: 上下文窗口管理+截断。效果: 无显式压缩重试 | ⚠️ 机制: 基础compaction无质量guard。效果: 无重试机制 |
 
-| **得分** | 8子特性 | OC=8 | DA=7.75 | DF=5.25 | HA=6.75 | CS=0.75 | CC=7.75 | CX=5.0 | OP=4.75 |
+| **得分** | 8子特性 | OC=8 | DA=7.75 | DF=5.5 | HA=6.75 | CS=0.75 | CC=7.75 | CX=4.5 | OP=4.75 |
 |------|------|------|------|------|------|------|------|------|------|
 
 ## 2. 记忆系统（数据持久化与存储）
@@ -121,8 +121,8 @@
 | **1** | **Hermes Agent** | **29.75** | 6.75 | 4.25 | 6.5 | 5.75 | 3 | 1.5 | 2 |
 | **2** | **OpenClaw** | **29.50** | 8 | 4.25 | 5 | 5.75 | 3.5 | 1 | 2 |
 | 3 | Claude Code | 27.50 | 7.75 | 4 | 5.5 | 6.25 | 3 | 0.5 | 0.5 |
-| 4 | DeerFlow 2.0 | 21.75 | 5.25 | 2.5 | 5 | 3.5 | 2.5 | 1 | 2 |
-| 5 | Codex | 20.25 | 5.0 | 2.5 | 4 | 4.75 | 1.5 | 0.5 | 2 |
+| 4 | DeerFlow 2.0 | 22.00 | 5.5 | 2.5 | 5 | 3.5 | 2.5 | 1 | 2 |
+| 5 | Codex | 19.75 | 4.5 | 2.5 | 4 | 4.75 | 1.5 | 0.5 | 2 |
 | 6 | Deep Agents | 20.00 | 7.75 | 3 | 4.5 | 2.75 | 2.5 | 0.5 | 2 |
 | 7 | OpenCode | 17.75 | 4.75 | 1.5 | 4 | 4.5 | 3 | 0 | 2 |
 | 8 | Cursor SDK | 4.25 | 0.75 | 0.75 | 1 | 0.25 | 0.75 | 0.5 | 1 |
